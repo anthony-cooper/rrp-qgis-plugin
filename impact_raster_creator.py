@@ -185,6 +185,10 @@ class ImpactRasterCreator:
             self.iface.removeToolBarIcon(action)
 
 
+    joinedLayers = []
+    impactLayers = []
+    levelLayers = []
+
     def run(self):
         """Run method that performs all the real work"""
 
@@ -195,10 +199,9 @@ class ImpactRasterCreator:
             self.dlg = ImpactRasterCreatorDialog()
             self.dlg.pushButton.clicked.connect(self.select_output_folder)
 
-
         # Initialise list of level layers
-        levelLayers = []
-        impactLayers = []
+        self.impactLayers = []
+        self.levelLayers = []
         layers = []
         # Fetch the currently loaded layers
         layers = self.load_all_layers(QgsProject.instance().layerTreeRoot().children(), layers)
@@ -208,16 +211,18 @@ class ImpactRasterCreator:
             if layer.layer().type() == 1:
                 if (layer.name()).find('h_Max') != -1:
                     self.dlg.comboBox.addItem(layer.name())
-                    levelLayers.append(layer)
+                    self.levelLayers.append(layer)
                 elif (layer.name()).find('_dh') != -1:
-                    impactLayers.append(layer)
+                    self.impactLayers.append(layer)
 
                 if ((layer.name()).find('BAS') != -1):
                     self.dlg.comboBox.setCurrentIndex(self.dlg.comboBox.count()-1)
 
-        events = (self.dlg.lineEdit.text()).split(",")
 
-        joinedLayers = self.create_file_list(levelLayers, impactLayers, events)
+
+        self.create_file_list()
+
+        self.dlg.comboBox.currentIndexChanged.connect(self.create_file_list)
 
         # show the dialog
         self.dlg.show()
@@ -225,7 +230,7 @@ class ImpactRasterCreator:
         result = self.dlg.exec_()
         # See if OK was pressed
         if result:
-            for joinedLayer in joinedLayers:
+            for joinedLayer in self.joinedLayers:
                 if joinedLayer[6].isSelected() is True:
                     joinedLayer[5] = self.dlg.outputFolderDlg.text() + '/'  + joinedLayer[4] + '.tif'
 
@@ -239,19 +244,20 @@ class ImpactRasterCreator:
                     self.iface.addRasterLayer(joinedLayer[5],joinedLayer[4])
 
 
-    def create_file_list(self, levelLayers, impactLayers, events):
-
+    def create_file_list(self):
+        self.joinedLayers = []
+        events = (self.dlg.lineEdit.text()).split(",")
         self.dlg.rasterList.clear()
 
         for event in events:
-            eloc = levelLayers[self.dlg.comboBox.currentIndex()].name().find(event)
+            eloc = self.levelLayers[self.dlg.comboBox.currentIndex()].name().find(event)
             if eloc != -1:
-                baseLayer = (levelLayers[self.dlg.comboBox.currentIndex()].name()).replace(event,'~event~')
+                baseLayer = (self.levelLayers[self.dlg.comboBox.currentIndex()].name()).replace(event,'~event~')
                 break
 
         baseLayers = []
         devLayers = []
-        for levelLayer in levelLayers:
+        for levelLayer in self.levelLayers:
             for event in events:
                 eloc = levelLayer.name().find(event)
                 if eloc != -1:
@@ -262,14 +268,13 @@ class ImpactRasterCreator:
                         devLayers.append([levelLayer, event])
                     break
 
-        joinedLayers = []
         for devLayer in devLayers:
             for baseLayer in baseLayers:
                 if devLayer[1] == baseLayer[1]:
-                    joinedLayers.append([devLayer[0], baseLayer[0], devLayer[1], True, '', '',QListWidgetItem()])
+                    self.joinedLayers.append([devLayer[0], baseLayer[0], devLayer[1], True, '', '',QListWidgetItem()])
                     break
 
-        for joinedLayer in joinedLayers:
+        for joinedLayer in self.joinedLayers:
             strSuf = ''
             strPre = ''
             strDev = ''
@@ -292,15 +297,13 @@ class ImpactRasterCreator:
 
             joinedLayer[4] = strPre + '[' + strDev + ']-[' + strBas + ']_' + joinedLayer[2] + '_dh'
 
-            for impactLayer in impactLayers:
+            for impactLayer in self.impactLayers:
                 if joinedLayer[4] == impactLayer.name():
                     joinedLayer[3] = False
                     break
 
             joinedLayer[6] = QListWidgetItem(joinedLayer[4], self.dlg.rasterList)
             joinedLayer[6].setSelected(joinedLayer[3])
-
-        return joinedLayers
 
 
 
