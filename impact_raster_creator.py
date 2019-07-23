@@ -23,7 +23,7 @@
 """
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction, QFileDialog
+from qgis.PyQt.QtWidgets import *
 from qgis.core import *
 import processing
 
@@ -226,7 +226,7 @@ class ImpactRasterCreator:
         # See if OK was pressed
         if result:
             for joinedLayer in joinedLayers:
-                if joinedLayer[3] is True:
+                if joinedLayer[6].isSelected() is True:
                     joinedLayer[5] = self.dlg.outputFolderDlg.text() + '/'  + joinedLayer[4] + '.tif'
 
                     parameters = {'INPUT_A' : joinedLayer[0].name(), 'INPUT_B' : joinedLayer[1].name(),
@@ -266,7 +266,7 @@ class ImpactRasterCreator:
         for devLayer in devLayers:
             for baseLayer in baseLayers:
                 if devLayer[1] == baseLayer[1]:
-                    joinedLayers.append([devLayer[0], baseLayer[0], devLayer[1], True, '', ''])
+                    joinedLayers.append([devLayer[0], baseLayer[0], devLayer[1], True, '', '',QListWidgetItem()])
                     break
 
         for joinedLayer in joinedLayers:
@@ -294,10 +294,11 @@ class ImpactRasterCreator:
 
             for impactLayer in impactLayers:
                 if joinedLayer[4] == impactLayer.name():
-                    joinedLayer[3] == False
+                    joinedLayer[3] = False
                     break
 
-            self.dlg.rasterList.addItem(joinedLayer[4])
+            joinedLayer[6] = QListWidgetItem(joinedLayer[4], self.dlg.rasterList)
+            joinedLayer[6].setSelected(joinedLayer[3])
 
         return joinedLayers
 
