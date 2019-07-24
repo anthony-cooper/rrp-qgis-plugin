@@ -26,6 +26,7 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import *
 from qgis.core import *
 import processing
+import gdal_calc
 
 
 
@@ -233,13 +234,11 @@ class ImpactRasterCreator:
             for joinedLayer in self.joinedLayers:
                 if joinedLayer[6].isSelected() is True:
                     joinedLayer[5] = self.dlg.outputFolderDlg.text() + '/'  + joinedLayer[4] + '.tif'
+                    if joinedLayer[3] is False:
+                        print(joinedLayer[7].layerId())
+                        QgsProject.instance().removeMapLayer(joinedLayer[7].layerId())
 
-                    parameters = {'INPUT_A' : joinedLayer[0].name(), 'INPUT_B' : joinedLayer[1].name(),
-                    'BAND_A' : 1, 'BAND_B' : 1,
-                    'FORMULA' : '(A - B)',
-                    'OUTPUT' : joinedLayer[5]}
-
-                    processing.run('gdal:rastercalculator', parameters)
+                    gdal_calc.Calc(A=joinedLayer[0].layer().source(), B=joinedLayer[1].layer().source(), A_band=1, B_band=1, calc="A-B", outfile=joinedLayer[5], overwrite=True)
 
                     self.iface.addRasterLayer(joinedLayer[5],joinedLayer[4])
 
@@ -271,7 +270,7 @@ class ImpactRasterCreator:
         for devLayer in devLayers:
             for baseLayer in baseLayers:
                 if devLayer[1] == baseLayer[1]:
-                    self.joinedLayers.append([devLayer[0], baseLayer[0], devLayer[1], True, '', '',QListWidgetItem()])
+                    self.joinedLayers.append([devLayer[0], baseLayer[0], devLayer[1], True, '', '',QListWidgetItem(),''])
                     break
 
         for joinedLayer in self.joinedLayers:
@@ -300,6 +299,7 @@ class ImpactRasterCreator:
             for impactLayer in self.impactLayers:
                 if joinedLayer[4] == impactLayer.name():
                     joinedLayer[3] = False
+                    joinedLayer[7] = impactLayer
                     break
 
             joinedLayer[6] = QListWidgetItem(joinedLayer[4], self.dlg.rasterList)
