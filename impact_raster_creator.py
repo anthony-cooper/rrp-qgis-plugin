@@ -25,9 +25,7 @@ from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import *
 from qgis.core import *
-import processing
 import gdal_calc
-
 
 
 # Initialize Qt resources from file resources.py
@@ -189,6 +187,7 @@ class ImpactRasterCreator:
     joinedLayers = []
     impactLayers = []
     levelLayers = []
+    baseLoc = ''
 
     def run(self):
         """Run method that performs all the real work"""
@@ -218,12 +217,13 @@ class ImpactRasterCreator:
 
                 if ((layer.name()).find('BAS') != -1):
                     self.dlg.comboBox.setCurrentIndex(self.dlg.comboBox.count()-1)
+                    self.baseLoc = os.path.abspath(os.path.join(os.path.dirname(layer.layer().source()), os.path.pardir, os.path.pardir, 'Impact'))
 
 
 
-        self.create_file_list()
+        self.update()
 
-        self.dlg.comboBox.currentIndexChanged.connect(self.create_file_list)
+        self.dlg.comboBox.currentIndexChanged.connect(self.update)
 
         # show the dialog
         self.dlg.show()
@@ -231,11 +231,13 @@ class ImpactRasterCreator:
         result = self.dlg.exec_()
         # See if OK was pressed
         if result:
+            folder = self.dlg.outputFolderDlg.text()
+            if not os.path.exists(folder):
+                os.makedirs(folder)
             for joinedLayer in self.joinedLayers:
                 if joinedLayer[6].isSelected() is True:
                     joinedLayer[5] = self.dlg.outputFolderDlg.text() + '/'  + joinedLayer[4] + '.tif'
                     if joinedLayer[3] is False:
-                        print(joinedLayer[7].layerId())
                         QgsProject.instance().removeMapLayer(joinedLayer[7].layerId())
 
                     gdal_calc.Calc(A=joinedLayer[0].layer().source(), B=joinedLayer[1].layer().source(), A_band=1, B_band=1, calc="A-B", outfile=joinedLayer[5], overwrite=True)
@@ -243,7 +245,13 @@ class ImpactRasterCreator:
                     self.iface.addRasterLayer(joinedLayer[5],joinedLayer[4])
 
 
-    def create_file_list(self):
+    def update(self):
+        #Set file location
+        if self.baseLoc != '':
+            self.dlg.outputFolderDlg.setText(self.baseLoc)
+
+
+        #Update and create joined layers list
         self.joinedLayers = []
         events = (self.dlg.lineEdit.text()).split(",")
         self.dlg.rasterList.clear()
@@ -320,5 +328,15 @@ class ImpactRasterCreator:
 
 
     def select_output_folder(self):
-        folder = QFileDialog.getExistingDirectory(self.dlg, "Open Directory", "/home", QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks)
-        self.dlg.outputFolderDlg.setText(folder)
+        folder = self.dlg.outputFolderDlg.text()
+        folder = self.find_existing(folder)
+        folder = QFileDialog.getExistingDirectory(self.dlg, "Open Directory", folder, QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks)
+        if folder is not '':
+            self.dlg.outputFolderDlg.setText(folder)
+
+    def find_existing(self, folder):
+        if not os.path.exists(folder):
+            folder = os.path.abspath(os.path.join(folder, os.pardir))
+            self.find_existing(folder)
+
+        return folder
