@@ -25,7 +25,8 @@ from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import *
 from qgis.core import *
-import gdal_calc
+from qgis.analysis import QgsRasterCalculator, QgsRasterCalculatorEntry
+import gdal
 
 
 # Initialize Qt resources from file resources.py
@@ -188,6 +189,7 @@ class ImpactRasterCreator:
     impactLayers = []
     levelLayers = []
     baseLoc = ''
+    calcType = '_dh'
 
     def run(self):
         """Run method that performs all the real work"""
@@ -214,7 +216,6 @@ class ImpactRasterCreator:
                     self.levelLayers.append(layer)
                 elif (layer.name()).find('_dh') != -1:
                     self.impactLayers.append(layer)
-
                 if ((layer.name()).find('BAS') != -1):
                     self.dlg.comboBox.setCurrentIndex(self.dlg.comboBox.count()-1)
                     self.baseLoc = os.path.abspath(os.path.join(os.path.dirname(layer.layer().source()), os.path.pardir, os.path.pardir, 'Impact'))
@@ -236,13 +237,54 @@ class ImpactRasterCreator:
                 os.makedirs(folder)
             for joinedLayer in self.joinedLayers:
                 if joinedLayer[6].isSelected() is True:
-                    joinedLayer[5] = self.dlg.outputFolderDlg.text() + '/'  + joinedLayer[4] + '.tif'
+                    joinedLayer[5] = os.path.join(self.dlg.outputFolderDlg.text(), joinedLayer[4] + '.tif')
                     if joinedLayer[3] is False:
                         QgsProject.instance().removeMapLayer(joinedLayer[7].layerId())
 
-                    gdal_calc.Calc(A=joinedLayer[0].layer().source(), B=joinedLayer[1].layer().source(), A_band=1, B_band=1, calc="A-B", outfile=joinedLayer[5], overwrite=True)
 
-                    self.iface.addRasterLayer(joinedLayer[5],joinedLayer[4])
+                    entries = []
+                    # Define
+                    A = QgsRasterCalculatorEntry()
+                    A.ref = 'A@1'
+                    A.raster = joinedLayer[0].layer()
+                    A.bandNumber = 1
+                    entries.append(A)
+                    B = QgsRasterCalculatorEntry()
+                    B.ref = 'B@1'
+                    B.raster = joinedLayer[1].layer()
+                    B.bandNumber = 1
+                    entries.append(B)
+
+                    joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,False)
+                    joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,False)
+
+                    if self.calcType == '_dh_dx':
+                        calcDo = '((A@1 = -999) AND (B@1 = -999)) * (-999) + ' + \
+                        '((A@1 = -999) AND (B@1 != -999)) * -99 + ' + \
+                        '((A@1 != -999) AND (B@1 = -999)) * 99 + ' + \
+                        '((A@1 != -999) AND (B@1 != -999)) * (A@1 - B@1)'
+                    elif self.calcType == '_dx':
+                        calcDo = '((A@1 = -999) AND (B@1 = -999)) * (-999) + ' + \
+                        '((A@1 = -999) AND (B@1 != -999)) * -99 + ' + \
+                        '((A@1 != -999) AND (B@1 = -999)) * 99 + ' + \
+                        '((A@1 != -999) AND (B@1 != -999)) * (-999)'
+                    else:
+                        calcDo = '((A@1 = -999) AND (B@1 = -999)) * (-999) + ' + \
+                        '((A@1 = -999) AND (B@1 != -999)) * (-999) + ' + \
+                        '((A@1 != -999) AND (B@1 = -999)) * (-999) + ' + \
+                        '((A@1 != -999) AND (B@1 != -999)) * (A@1 - B@1)'
+
+                    calc = QgsRasterCalculator(calcDo, '/vsimem/in_memory_output.tif', 'GTiff', joinedLayer[0].layer().extent(), joinedLayer[0].layer().width(), joinedLayer[0].layer().height(), entries)
+                    calcRes = calc.processCalculation()
+
+                    joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,True)
+                    joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,True)
+
+
+                    gdal.Translate(joinedLayer[5], gdal.Open('/vsimem/in_memory_output.tif'), options=gdal.TranslateOptions(noData=-999))
+
+                    if calcRes == 0:
+                        newLayer = self.iface.addRasterLayer(joinedLayer[5],joinedLayer[4])
 
 
     def update(self):
@@ -302,7 +344,7 @@ class ImpactRasterCreator:
                     strBas = strBas[:(len(strBas)-len(strSuf))]
                     break
 
-            joinedLayer[4] = strPre + '[' + strDev + ']-[' + strBas + ']_' + joinedLayer[2] + '_dh'
+            joinedLayer[4] = strPre + '[' + strDev + ']-[' + strBas + ']_' + joinedLayer[2] + self.calcType
 
             for impactLayer in self.impactLayers:
                 if joinedLayer[4] == impactLayer.name():
