@@ -205,52 +205,64 @@ class ImpactRasterCreator:
         self.impactLayers = []
         self.levelLayers = []
         layers = []
+
         # Fetch the currently loaded layers
         layers = self.load_all_layers(QgsProject.instance().layerTreeRoot().children(), layers)
+
         # Clear the contents of the comboBox from previous runs
         self.dlg.comboBox.clear()
-        for layer in layers:
-            if layer.layer().type() == 1:
-                if (layer.name()).find('h_Max') != -1:
-                    self.dlg.comboBox.addItem(layer.name())
-                    self.levelLayers.append(layer)
-                elif (layer.name()).find('_dh') != -1:
-                    self.impactLayers.append(layer)
-                if ((layer.name()).find('BAS') != -1):
-                    self.dlg.comboBox.setCurrentIndex(self.dlg.comboBox.count()-1)
-                    self.baseLoc = os.path.abspath(os.path.join(os.path.dirname(layer.layer().source()), os.path.pardir, os.path.pardir, os.path.pardir, 'Impact'))
 
+        #Check through all loaded layers
+        for layer in layers:
+            if layer.layer().type() == 1:                   #If they are rasters continue checking
+                if (layer.name()).find('h_Max') != -1:      #If the are h_max's
+                    self.dlg.comboBox.addItem(layer.name()) #Add to the comboBox
+                    self.levelLayers.append(layer)          #Add to the list of level layers
+                    if (layer.name()).find('BAS') != -1:      #If the layer has BAS anywhere in it - tries to identify base layers
+                        self.dlg.comboBox.setCurrentIndex(self.dlg.comboBox.count()-1)  #If it is a base layer select it, then set baseLoc to it, up 3 levels, then Impact folder
+                        self.baseLoc = os.path.abspath(os.path.join(os.path.dirname(layer.layer().source()), os.path.pardir, os.path.pardir, os.path.pardir, 'Impact'))
+                elif (layer.name()).find('_dh') != -1 or (layer.name()).find('_dx') != -1:  #If are _dh, _dx or _dh_dx
+                    self.impactLayers.append(layer)         #Add to the list of impact layers
+
+        #If no base layer has been selected, pick the first
+        if self.dlg.comboBox.currentIndex() == -1:
+            self.dlg.comboBox.setCurrentIndex(0)
+
+        #Set default to generate _dh
         self.dlg.radioButton_dh.setChecked(True)
         self.calcType = '_dh'
 
-
+        #Update the UI and lists
         self.update()
 
+        #Connect the update to changes in the combobox or radio buttons
         self.dlg.comboBox.currentIndexChanged.connect(self.update)
         #self.dlg.radioButton_dh.toggled.connect(self.update)       unnessary check
         self.dlg.radioButton_dh_dx.toggled.connect(self.update)
         self.dlg.radioButton_dx.toggled.connect(self.update)
 
-
-
         # show the dialog
         self.dlg.show()
+
         # Run the dialog event loop
         result = self.dlg.exec_()
+
         # See if OK was pressed
         if result:
-            folder = self.dlg.outputFolderDlg.text()
-            if not os.path.exists(folder):
-                os.makedirs(folder)
-            for joinedLayer in self.joinedLayers:
-                if joinedLayer[6].isSelected() is True:
-                    joinedLayer[5] = os.path.join(self.dlg.outputFolderDlg.text(), joinedLayer[4] + '.tif')
-                    if joinedLayer[3] is False:
-                        QgsProject.instance().removeMapLayer(joinedLayer[7].layerId())
+            folder = self.dlg.outputFolderDlg.text() #set output folder based off current writing
+            if not os.path.exists(folder):              #check if the output folder exists
+                os.makedirs(folder)                     #create it if not
 
+            #Main Running
+            for joinedLayer in self.joinedLayers:                       #For every layer that has been joined
+                if joinedLayer[6].isSelected() is True:                                 #If it is selected in UI
+                    joinedLayer[5] = os.path.join(folder, joinedLayer[4] + '.tif')      #Set final output file name
 
+                    if joinedLayer[3] is False:                                             #If it already exists in the project
+                        QgsProject.instance().removeMapLayer(joinedLayer[7].layerId())      #Unload the layer from the project
+
+                    #Define the items being added to the raster calculator
                     entries = []
-                    # Define
                     A = QgsRasterCalculatorEntry()
                     A.ref = 'A@1'
                     A.raster = joinedLayer[0].layer()
@@ -262,9 +274,11 @@ class ImpactRasterCreator:
                     B.bandNumber = 1
                     entries.append(B)
 
+                    #Turn off nodata - perform calc on every value
                     joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,False)
                     joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,False)
 
+                    #Set the calculation type
                     if self.calcType == '_dh_dx':
                         calcDo = '((A@1 = -999) AND (B@1 = -999)) * (-999) + ' + \
                         '((A@1 = -999) AND (B@1 != -999)) * -99 + ' + \
@@ -281,16 +295,18 @@ class ImpactRasterCreator:
                         '((A@1 != -999) AND (B@1 = -999)) * (-999) + ' + \
                         '((A@1 != -999) AND (B@1 != -999)) * (A@1 - B@1)'
 
+                    #Do the calculation and create a temp output
                     calc = QgsRasterCalculator(calcDo, '/vsimem/in_memory_output.tif', 'GTiff', joinedLayer[0].layer().extent(), joinedLayer[0].layer().width(), joinedLayer[0].layer().height(), entries)
                     calcRes = calc.processCalculation()
 
+                    #Turn nodata values back on
                     joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,True)
                     joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,True)
 
-
-                    gdal.Translate(joinedLayer[5], gdal.Open('/vsimem/in_memory_output.tif'), options=gdal.TranslateOptions(noData=-999))
-
-                    if calcRes == 0:
+                    if calcRes == 0: #If the calculation worked
+                        #Process the temp output to remove nodata values
+                        gdal.Translate(joinedLayer[5], gdal.Open('/vsimem/in_memory_output.tif'), options=gdal.TranslateOptions(noData=-999))
+                        #Add layer to interface
                         newLayer = self.iface.addRasterLayer(joinedLayer[5],joinedLayer[4])
 
 
@@ -299,7 +315,7 @@ class ImpactRasterCreator:
         if self.baseLoc != '':
             self.dlg.outputFolderDlg.setText(self.baseLoc)
 
-        #Set calc type
+        #Set calc type - see which radio button is checked
         if self.dlg.radioButton_dh_dx.isChecked() is True:
             self.calcType = '_dh_dx'
         elif self.dlg.radioButton_dx.isChecked() is True:
@@ -307,38 +323,40 @@ class ImpactRasterCreator:
         else:
             self.calcType = '_dh'
 
+        self.joinedLayers = [] #Clear list of joined layers
 
+        events = (self.dlg.lineEdit.text()).split(",") #Create list of events from given string
 
-        #Update and create joined layers list
-        self.joinedLayers = []
-        events = (self.dlg.lineEdit.text()).split(",")
-        self.dlg.rasterList.clear()
+        self.dlg.rasterList.clear() #Clear list of rasters in UI
 
-        for event in events:
-            eloc = self.levelLayers[self.dlg.comboBox.currentIndex()].name().find(event)
-            if eloc != -1:
-                baseLayer = (self.levelLayers[self.dlg.comboBox.currentIndex()].name()).replace(event,'~event~')
-                break
+        for event in events: #For each event
+            eloc = self.levelLayers[self.dlg.comboBox.currentIndex()].name().find(event)    #try to find the event in the layer name, set it to eloc
 
-        baseLayers = []
-        devLayers = []
-        for levelLayer in self.levelLayers:
-            for event in events:
-                eloc = levelLayer.name().find(event)
-                if eloc != -1:
-                    genLayer = (levelLayer.name()).replace(event,'~event~')
-                    if genLayer == baseLayer:
+            if eloc != -1:      #Once the event has been found (hence eloc != -1)
+                baseLayer = (self.levelLayers[self.dlg.comboBox.currentIndex()].name()).replace(event,'~event~') #sub ~event~ in place of the actual event in the layer name
+                break   #Stop trying to find other events in the layer
+
+        baseLayers = [] #blank the list of base layers
+        devLayers = []  #blank the list of developed layers
+        for levelLayer in self.levelLayers: #for all the water level layers
+            for event in events:            #check for each event
+                eloc = levelLayer.name().find(event) #can the event name be found
+                if eloc != -1:  #if event can be found
+                    genLayer = (levelLayer.name()).replace(event,'~event~') #sub ~event~ in place of the actual event in the layer name
+                    if genLayer == baseLayer: # if this layer has the same name as the baselayer its a baselayer, so store it with its event
                         baseLayers.append([levelLayer, event])
-                    else:
+                    else:                     # else its a developed layer so store it with that
                         devLayers.append([levelLayer, event])
                     break
 
-        for devLayer in devLayers:
-            for baseLayer in baseLayers:
-                if devLayer[1] == baseLayer[1]:
+        #Joined developed and base layers together
+        for devLayer in devLayers:  #For every developed layer
+            for baseLayer in baseLayers: #check every baselayer
+                if devLayer[1] == baseLayer[1]: #If it finds a baselayer with same event, add it to the list of joined layers and stop looking
                     self.joinedLayers.append([devLayer[0], baseLayer[0], devLayer[1], True, '', '',QListWidgetItem(),''])
                     break
 
+        #Process the joined layers to develop names and attributes, then add them to the list of layers
         for joinedLayer in self.joinedLayers:
             strSuf = ''
             strPre = ''
