@@ -218,7 +218,7 @@ class ImpactRasterCreator:
                     self.impactLayers.append(layer)
                 if ((layer.name()).find('BAS') != -1):
                     self.dlg.comboBox.setCurrentIndex(self.dlg.comboBox.count()-1)
-                    self.baseLoc = os.path.abspath(os.path.join(os.path.dirname(layer.layer().source()), os.path.pardir, os.path.pardir, 'Impact'))
+                    self.baseLoc = os.path.abspath(os.path.join(os.path.dirname(layer.layer().source()), os.path.pardir, os.path.pardir, os.path.pardir, 'Impact'))
 
 
 
