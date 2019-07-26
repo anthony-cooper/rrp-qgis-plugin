@@ -121,9 +121,9 @@
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>170</y>
+     <y>230</y>
      <width>711</width>
-     <height>481</height>
+     <height>421</height>
     </rect>
    </property>
    <property name="focusPolicy">
@@ -149,13 +149,68 @@
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>150</y>
+     <y>210</y>
      <width>711</width>
      <height>21</height>
     </rect>
    </property>
    <property name="text">
-    <string>Impact rasters to be created (highlighted grey will be created)</string>
+    <string>Raster grids to be created (highlighted grey will be created)</string>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="radioButton_dh">
+   <property name="geometry">
+    <rect>
+     <x>210</x>
+     <y>150</y>
+     <width>82</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Impact (_dh)</string>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_5">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>150</y>
+     <width>161</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Grid type to create</string>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="radioButton_dh_dx">
+   <property name="geometry">
+    <rect>
+     <x>210</x>
+     <y>170</y>
+     <width>221</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Impact and Change in Extents (_dh_dx)</string>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="radioButton_dx">
+   <property name="geometry">
+    <rect>
+     <x>210</x>
+     <y>190</y>
+     <width>221</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Change in Extents (_dx)</string>
    </property>
   </widget>
  </widget>

@@ -220,11 +220,18 @@ class ImpactRasterCreator:
                     self.dlg.comboBox.setCurrentIndex(self.dlg.comboBox.count()-1)
                     self.baseLoc = os.path.abspath(os.path.join(os.path.dirname(layer.layer().source()), os.path.pardir, os.path.pardir, os.path.pardir, 'Impact'))
 
+        self.dlg.radioButton_dh.setChecked(True)
+        self.calcType = '_dh'
 
 
         self.update()
 
         self.dlg.comboBox.currentIndexChanged.connect(self.update)
+        #self.dlg.radioButton_dh.toggled.connect(self.update)       unnessary check
+        self.dlg.radioButton_dh_dx.toggled.connect(self.update)
+        self.dlg.radioButton_dx.toggled.connect(self.update)
+
+
 
         # show the dialog
         self.dlg.show()
@@ -291,6 +298,15 @@ class ImpactRasterCreator:
         #Set file location
         if self.baseLoc != '':
             self.dlg.outputFolderDlg.setText(self.baseLoc)
+
+        #Set calc type
+        if self.dlg.radioButton_dh_dx.isChecked() is True:
+            self.calcType = '_dh_dx'
+        elif self.dlg.radioButton_dx.isChecked() is True:
+            self.calcType = '_dx'
+        else:
+            self.calcType = '_dh'
+
 
 
         #Update and create joined layers list
