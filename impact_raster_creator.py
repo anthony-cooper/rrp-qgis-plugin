@@ -201,6 +201,11 @@ class ImpactRasterCreator:
             self.dlg = ImpactRasterCreatorDialog()
             self.dlg.pushButton.clicked.connect(self.select_output_folder)
 
+        #Disconnect any update connections whilst initialize
+        try: self.dlg.comboBox.currentIndexChanged.disconnect()
+        except Exception: pass
+
+
         # Initialise list of level layers
         self.impactLayers = []
         self.levelLayers = []
@@ -227,7 +232,6 @@ class ImpactRasterCreator:
         #If no base layer has been selected, pick the first
         if self.dlg.comboBox.currentIndex() == -1:
             self.dlg.comboBox.setCurrentIndex(0)
-
         #Set default to generate _dh
         self.dlg.radioButton_dh.setChecked(True)
         self.calcType = '_dh'
