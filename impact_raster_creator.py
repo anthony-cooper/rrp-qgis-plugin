@@ -217,6 +217,8 @@ class ImpactRasterCreator:
         # Clear the contents of the comboBox from previous runs
         self.dlg.comboBox.clear()
 
+        self.dlg.comboBox.setCurrentIndex(0)
+
         #Check through all loaded layers
         for layer in layers:
             if layer.layer().type() == 1:                   #If they are rasters continue checking
@@ -334,8 +336,13 @@ class ImpactRasterCreator:
         self.dlg.rasterList.clear() #Clear list of rasters in UI
 
         for event in events: #For each event
-            eloc = self.levelLayers[self.dlg.comboBox.currentIndex()].name().find(event)    #try to find the event in the layer name, set it to eloc
-
+            eloc = -1
+            print(eloc)
+            print(self.dlg.comboBox.currentIndex())
+            #print(self.levelLayers[self.dlg.comboBox.currentIndex()].name().find(event))
+            print('...')
+            if self.dlg.comboBox.currentIndex() != -1:
+                eloc = self.levelLayers[self.dlg.comboBox.currentIndex()].name().find(event)    #try to find the event in the layer name, set it to eloc
             if eloc != -1:      #Once the event has been found (hence eloc != -1)
                 baseLayer = (self.levelLayers[self.dlg.comboBox.currentIndex()].name()).replace(event,'~event~') #sub ~event~ in place of the actual event in the layer name
                 break   #Stop trying to find other events in the layer
