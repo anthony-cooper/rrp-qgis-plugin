@@ -337,10 +337,6 @@ class ImpactRasterCreator:
 
         for event in events: #For each event
             eloc = -1
-            print(eloc)
-            print(self.dlg.comboBox.currentIndex())
-            #print(self.levelLayers[self.dlg.comboBox.currentIndex()].name().find(event))
-            print('...')
             if self.dlg.comboBox.currentIndex() != -1:
                 eloc = self.levelLayers[self.dlg.comboBox.currentIndex()].name().find(event)    #try to find the event in the layer name, set it to eloc
             if eloc != -1:      #Once the event has been found (hence eloc != -1)
