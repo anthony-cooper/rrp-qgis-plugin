@@ -302,18 +302,21 @@ class ImpactRasterCreator:
                         '((A@1 != -999) AND (B@1 != -999)) * (A@1 - B@1)'
 
                     #Do the calculation and create a temp output
-                    calc = QgsRasterCalculator(calcDo, '/vsimem/in_memory_output.tif', 'GTiff', joinedLayer[0].layer().extent(), joinedLayer[0].layer().width(), joinedLayer[0].layer().height(), entries)
-                    calcRes = calc.processCalculation()
+                    #calc = QgsRasterCalculator(calcDo, '/vsimem/in_memory_output.tif', 'GTiff', joinedLayer[0].layer().extent(), joinedLayer[0].layer().width(), joinedLayer[0].layer().height(), entries)
+                    #calcRes = calc.processCalculation()
 
                     #Turn nodata values back on
                     joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,True)
                     joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,True)
 
-                    if calcRes == 0: #If the calculation worked
-                        #Process the temp output to remove nodata values
-                        gdal.Translate(joinedLayer[5], gdal.Open('/vsimem/in_memory_output.tif'), options=gdal.TranslateOptions(noData=-999))
-                        #Add layer to interface
-                        newLayer = self.iface.addRasterLayer(joinedLayer[5],joinedLayer[4])
+                    #if calcRes == 0: #If the calculation worked
+                    #    #Process the temp output to remove nodata values
+                    #    gdal.Translate(joinedLayer[5], gdal.Open('/vsimem/in_memory_output.tif'), options=gdal.TranslateOptions(noData=-999))
+                    #    #Add layer to interface
+                    #    newLayer = self.iface.addRasterLayer(joinedLayer[5],joinedLayer[4])
+                    
+
+
 
 
     def update(self):
