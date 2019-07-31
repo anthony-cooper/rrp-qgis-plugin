@@ -7,7 +7,7 @@ MESSAGE_CATEGORY = 'ImpactRasterCalcTask'
 
 class ImpactRasterCalcTask(QgsTask):
     """This shows how to subclass QgsTask"""
-    def __init__(self, description, duration):
+    def __init__(self, description, calcDo, joinedLayer, entries):
         super().__init__(description, QgsTask.CanCancel)
         self.description = description
         self.calcDo = calcDo
@@ -35,8 +35,8 @@ class ImpactRasterCalcTask(QgsTask):
 
             #Move to finished(/cancelled?)
             #Turn nodata values back on
-            self.joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,True)
-            self.joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,True)
+            #self.joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,True)
+            #self.joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,True)
 
             if calcRes == 0: #If the calculation worked
                 #Process the temp output to remove nodata values
@@ -44,7 +44,7 @@ class ImpactRasterCalcTask(QgsTask):
 
                 #Move to finished
                 #Add layer to interface
-                newLayer = self.iface.addRasterLayer(self.joinedLayer[5],self.joinedLayer[4])
+                #newLayer = self.iface.addRasterLayer(self.joinedLayer[5],self.joinedLayer[4])
 
             # check isCanceled() to handle cancellation
             if self.isCanceled():
@@ -63,12 +63,7 @@ class ImpactRasterCalcTask(QgsTask):
         """
         if result:
             QgsMessageLog.logMessage(
-                'Task "{name}" completed\n' \
-                'Total: {total} (with {iterations} '\
-              'iterations)'.format(
-                  name=self.description(),
-                  total=self.total,
-                  iterations=self.iterations),
+                'Task "{name}" completed\n'.format(name=self.description()),
               MESSAGE_CATEGORY, Qgis.Success)
         else:
             if self.exception is None:
@@ -92,8 +87,6 @@ class ImpactRasterCalcTask(QgsTask):
                 name=self.description()),
             MESSAGE_CATEGORY, Qgis.Info)
         super().cancel()
-
-import __main__
 
 longtask = ImpactRasterCalcTask(description, v)
 

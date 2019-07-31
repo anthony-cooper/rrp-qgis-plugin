@@ -260,6 +260,7 @@ class ImpactRasterCreator:
                 os.makedirs(folder)                     #create it if not
 
             #Main Running
+
             for joinedLayer in self.joinedLayers:                       #For every layer that has been joined
                 if joinedLayer[6].isSelected() is True:                                 #If it is selected in UI
                     joinedLayer[5] = os.path.join(folder, joinedLayer[4] + '.tif')      #Set final output file name
@@ -301,20 +302,25 @@ class ImpactRasterCreator:
                         '((A@1 != -999) AND (B@1 = -999)) * (-999) + ' + \
                         '((A@1 != -999) AND (B@1 != -999)) * (A@1 - B@1)'
 
+
+
                     #Do the calculation and create a temp output
                     #calc = QgsRasterCalculator(calcDo, '/vsimem/in_memory_output.tif', 'GTiff', joinedLayer[0].layer().extent(), joinedLayer[0].layer().width(), joinedLayer[0].layer().height(), entries)
                     #calcRes = calc.processCalculation()
 
                     #Turn nodata values back on
-                    joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,True)
-                    joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,True)
+                    #joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,True)
+                    #joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,True)
 
                     #if calcRes == 0: #If the calculation worked
                     #    #Process the temp output to remove nodata values
                     #    gdal.Translate(joinedLayer[5], gdal.Open('/vsimem/in_memory_output.tif'), options=gdal.TranslateOptions(noData=-999))
                     #    #Add layer to interface
                     #    newLayer = self.iface.addRasterLayer(joinedLayer[5],joinedLayer[4])
-                    
+
+                    globals()['task_' + joinedLayer[4]] = ImpactRasterCalcTask(joinedLayer[4], calcDo, joinedLayer, entries, self.iface)
+
+                    QgsApplication.taskManager().addTask(globals()['task_' + joinedLayer[4]])
 
 
 
@@ -426,3 +432,100 @@ class ImpactRasterCreator:
             self.find_existing(folder)
 
         return folder
+
+MESSAGE_CATEGORY = 'ImpactRasterCalcTask'
+
+class ImpactRasterCalcTask(QgsTask):
+    """This shows how to subclass QgsTask"""
+    def __init__(self, description, calcDo, joinedLayer, entries, iface):
+        super().__init__(description, QgsTask.CanCancel)
+        self.description = description
+        self.calcDo = calcDo
+        self.joinedLayer = joinedLayer
+        self.entries = entries
+        self.total = 0
+        self.iterations = 0
+        self.exception = None
+        self.iface = iface
+
+    def run(self):
+        """Here you implement your heavy lifting.
+        Should periodically test for isCanceled() to gracefully
+        abort.
+        This method MUST return True or False.
+        Raising exceptions will crash QGIS, so we handle them
+        internally and raise them in self.finished
+        """
+        QgsMessageLog.logMessage('Started task "{}"'.format(
+                                     self.description),
+                                 MESSAGE_CATEGORY, Qgis.Info)
+
+        #Do the calculation and create a temp output
+        calc = QgsRasterCalculator(self.calcDo, '/vsimem/'+self.joinedLayer[4]+'.tif', 'GTiff', self.joinedLayer[0].layer().extent(), self.joinedLayer[0].layer().width(), self.joinedLayer[0].layer().height(), self.entries)
+        calcRes = calc.processCalculation()
+
+        #Move to finished(/cancelled?)
+        #Turn nodata values back on
+        #self.joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,True)
+        #self.joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,True)
+
+        if calcRes == 0: #If the calculation worked
+            #Process the temp output to remove nodata values
+            gdal.Translate(self.joinedLayer[5], gdal.Open('/vsimem/'+self.joinedLayer[4]+'.tif'), options=gdal.TranslateOptions(noData=-999))
+        else:
+            self.exception = calcRes
+            return False
+
+        # check isCanceled() to handle cancellation
+        if self.isCanceled():
+            return False
+        return True
+
+    def finished(self, result):
+        """
+        This function is automatically called when the task has
+        completed (successfully or not).
+        You implement finished() to do whatever follow-up stuff
+        should happen after the task is complete.
+        finished is always called from the main thread, so it's safe
+        to do GUI operations and raise Python exceptions here.
+        result is the return value from self.run.
+        """
+        #Turn nodata values back on
+        self.joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,True)
+        self.joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,True)
+
+        if result:
+            QgsMessageLog.logMessage(
+                'Task "{name}" completed\n'.format(name=self.description),
+              MESSAGE_CATEGORY, Qgis.Success)
+
+            #Add layer to interface
+            newLayer = self.iface.addRasterLayer(self.joinedLayer[5],self.joinedLayer[4])
+
+        else:
+            if self.exception is None:
+                QgsMessageLog.logMessage(
+                    'Task "{name}" not successful but without '
+                    'exception (probably the task was manually '\
+                    'canceled by the user)'.format(
+                        name=self.description),
+                    MESSAGE_CATEGORY, Qgis.Warning)
+            else:
+                QgsMessageLog.logMessage(
+                    'Task "{name}" Exception: {exception}'.format(
+                        name=self.description(),
+                        exception=self.exception),
+                    MESSAGE_CATEGORY, Qgis.Critical)
+                raise self.exception
+
+    def cancel(self):
+        #Turn nodata values back on
+        self.joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,True)
+        self.joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,True)
+
+        QgsMessageLog.logMessage(
+            'Task "{name}" was canceled'.format(
+                name=self.description),
+            MESSAGE_CATEGORY, Qgis.Info)
+        super().cancel()
