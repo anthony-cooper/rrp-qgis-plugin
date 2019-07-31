@@ -447,6 +447,8 @@ class ImpactRasterCalcTask(QgsTask):
         self.iterations = 0
         self.exception = None
         self.iface = iface
+        self.feedback = QgsFeedback()
+        self.feedback.progressChanged.connect(lambda: self.setProgress(5 + 0.9 * self.feedback.progress()))
 
     def run(self):
         """Here you implement your heavy lifting.
@@ -460,14 +462,12 @@ class ImpactRasterCalcTask(QgsTask):
                                      self.description),
                                  MESSAGE_CATEGORY, Qgis.Info)
 
+        self.setProgress(5)
         #Do the calculation and create a temp output
         calc = QgsRasterCalculator(self.calcDo, '/vsimem/'+self.joinedLayer[4]+'.tif', 'GTiff', self.joinedLayer[0].layer().extent(), self.joinedLayer[0].layer().width(), self.joinedLayer[0].layer().height(), self.entries)
-        calcRes = calc.processCalculation()
+        calcRes = calc.processCalculation(self.feedback)
 
-        #Move to finished(/cancelled?)
-        #Turn nodata values back on
-        #self.joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,True)
-        #self.joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,True)
+        self.setProgress(95)
 
         if calcRes == 0: #If the calculation worked
             #Process the temp output to remove nodata values
@@ -505,6 +505,7 @@ class ImpactRasterCalcTask(QgsTask):
 
         else:
             if self.exception is None:
+                self.feedback.cancel()
                 QgsMessageLog.logMessage(
                     'Task "{name}" not successful but without '
                     'exception (probably the task was manually '\
@@ -512,17 +513,14 @@ class ImpactRasterCalcTask(QgsTask):
                         name=self.description),
                     MESSAGE_CATEGORY, Qgis.Warning)
             else:
-                QgsMessageLog.logMessage(
-                    'Task "{name}" Exception: {exception}'.format(
-                        name=self.description(),
-                        exception=self.exception),
-                    MESSAGE_CATEGORY, Qgis.Critical)
+                QgsMessageLog.logMessage('Task "{name}" Exception: {exception}'.format(name=self.description,exception=self.exception),MESSAGE_CATEGORY, Qgis.Critical)
                 raise self.exception
 
     def cancel(self):
         #Turn nodata values back on
         self.joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,True)
         self.joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,True)
+        self.feedback.cancel()
 
         QgsMessageLog.logMessage(
             'Task "{name}" was canceled'.format(
