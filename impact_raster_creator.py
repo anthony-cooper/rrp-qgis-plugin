@@ -269,21 +269,21 @@ class ImpactRasterCreator:
                         QgsProject.instance().removeMapLayer(joinedLayer[7].layerId())      #Unload the layer from the project
 
                     #Define the items being added to the raster calculator
-                    entries = []
-                    A = QgsRasterCalculatorEntry()
-                    A.ref = 'A@1'
-                    A.raster = joinedLayer[0].layer()
-                    A.bandNumber = 1
-                    entries.append(A)
-                    B = QgsRasterCalculatorEntry()
-                    B.ref = 'B@1'
-                    B.raster = joinedLayer[1].layer()
-                    B.bandNumber = 1
-                    entries.append(B)
+                    #entries = []
+                    #A = QgsRasterCalculatorEntry()
+                    #A.ref = 'A@1'
+                    #A.raster = joinedLayer[0].layer()
+                    #A.bandNumber = 1
+                    #entries.append(A)
+                    #B = QgsRasterCalculatorEntry()
+                    #B.ref = 'B@1'
+                    #B.raster = joinedLayer[1].layer()
+                    #B.bandNumber = 1
+                    #entries.append(B)
 
                     #Turn off nodata - perform calc on every value
-                    joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,False)
-                    joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,False)
+                    #joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,False)
+                    #joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,False)
 
                     #Set the calculation type
                     if self.calcType == '_dh_dx':
@@ -318,7 +318,7 @@ class ImpactRasterCreator:
                     #    #Add layer to interface
                     #    newLayer = self.iface.addRasterLayer(joinedLayer[5],joinedLayer[4])
 
-                    globals()['task_' + joinedLayer[4]] = ImpactRasterCalcTask(joinedLayer[4], calcDo, joinedLayer, entries, self.iface)
+                    globals()['task_' + joinedLayer[4]] = ImpactRasterCalcTask(joinedLayer[4], calcDo, joinedLayer, self.iface)
 
                     QgsApplication.taskManager().addTask(globals()['task_' + joinedLayer[4]])
 
@@ -437,12 +437,11 @@ MESSAGE_CATEGORY = 'ImpactRasterCalcTask'
 
 class ImpactRasterCalcTask(QgsTask):
     """This shows how to subclass QgsTask"""
-    def __init__(self, description, calcDo, joinedLayer, entries, iface):
+    def __init__(self, description, calcDo, joinedLayer, iface):
         super().__init__(description, QgsTask.CanCancel)
         self.description = description
         self.calcDo = calcDo
         self.joinedLayer = joinedLayer
-        self.entries = entries
         self.total = 0
         self.iterations = 0
         self.exception = None
@@ -462,9 +461,29 @@ class ImpactRasterCalcTask(QgsTask):
                                      self.description),
                                  MESSAGE_CATEGORY, Qgis.Info)
 
+        layerA = QgsRasterLayer(self.joinedLayer[0].layer().source(), self.joinedLayer[4] + '_' + self.joinedLayer[0].layer().name())
+        layerB = QgsRasterLayer(self.joinedLayer[1].layer().source(), self.joinedLayer[4] + '_' + self.joinedLayer[1].layer().name())
+
+        layerA.dataProvider().setUseSourceNoDataValue(1,True)
+        layerB.dataProvider().setUseSourceNoDataValue(1,True)
+
+        #Define the items being added to the raster calculator
+        entries = []
+        A = QgsRasterCalculatorEntry()
+        A.ref = 'A@1'
+        A.raster = layerA
+        A.bandNumber = 1
+        entries.append(A)
+        B = QgsRasterCalculatorEntry()
+        B.ref = 'B@1'
+        B.raster = layerB
+        B.bandNumber = 1
+        entries.append(B)
+
+
         self.setProgress(5)
         #Do the calculation and create a temp output
-        calc = QgsRasterCalculator(self.calcDo, '/vsimem/'+self.joinedLayer[4]+'.tif', 'GTiff', self.joinedLayer[0].layer().extent(), self.joinedLayer[0].layer().width(), self.joinedLayer[0].layer().height(), self.entries)
+        calc = QgsRasterCalculator(self.calcDo, '/vsimem/'+self.joinedLayer[4]+'.tif', 'GTiff', self.joinedLayer[0].layer().extent(), self.joinedLayer[0].layer().width(), self.joinedLayer[0].layer().height(), entries)
         calcRes = calc.processCalculation(self.feedback)
 
         self.setProgress(95)
@@ -492,8 +511,8 @@ class ImpactRasterCalcTask(QgsTask):
         result is the return value from self.run.
         """
         #Turn nodata values back on
-        self.joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,True)
-        self.joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,True)
+        #self.joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,True)
+        #self.joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,True)
 
         if result:
             QgsMessageLog.logMessage(
@@ -518,8 +537,8 @@ class ImpactRasterCalcTask(QgsTask):
 
     def cancel(self):
         #Turn nodata values back on
-        self.joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,True)
-        self.joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,True)
+        #self.joinedLayer[0].layer().dataProvider().setUseSourceNoDataValue(1,True)
+        #self.joinedLayer[1].layer().dataProvider().setUseSourceNoDataValue(1,True)
         self.feedback.cancel()
 
         QgsMessageLog.logMessage(
