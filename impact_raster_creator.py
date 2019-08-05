@@ -464,8 +464,8 @@ class ImpactRasterCalcTask(QgsTask):
         layerA = QgsRasterLayer(self.joinedLayer[0].layer().source(), self.joinedLayer[4] + '_' + self.joinedLayer[0].layer().name())
         layerB = QgsRasterLayer(self.joinedLayer[1].layer().source(), self.joinedLayer[4] + '_' + self.joinedLayer[1].layer().name())
 
-        layerA.dataProvider().setUseSourceNoDataValue(1,True)
-        layerB.dataProvider().setUseSourceNoDataValue(1,True)
+        layerA.dataProvider().setUseSourceNoDataValue(1,False)
+        layerB.dataProvider().setUseSourceNoDataValue(1,False)
 
         #Define the items being added to the raster calculator
         entries = []
