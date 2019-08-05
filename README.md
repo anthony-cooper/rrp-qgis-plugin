@@ -7,16 +7,22 @@ Tools are primarily designed to work with TUFLOW outputs
 ## Impact Raster Creator
 Tool that takes a Changed scenario and matches it to a Baseline scenario raster for the same event and calculates a grid of change in water level and/or change in extents
 
+<<<<<<< HEAD
 Tool takes advantage of tasks in QGIS 3 to enable multi-thread background processing to speed up creation of impact rasters for multiple events and/or scenarios
 
+=======
+>>>>>>> 117fc70c93fae165c71fd6e8c8c06c26cefcb533
 * On launching the tool identifies all loaded max water level rasters (h_Max), and attempts to identify a baseline file
 
 * User can select which file to use an example baseline instead
 
 * User then provides all event identifiers used in the file naming convention (\~eN~)
 
+<<<<<<< HEAD
 * All other baseline results will be identified from this
 
+=======
+>>>>>>> 117fc70c93fae165c71fd6e8c8c06c26cefcb533
 * Output location can be specified; By default the location is two levels above the baseline water level grid, in a folder called Impact
   * /Results
     * /Raw
@@ -51,5 +57,8 @@ Tool takes advantage of tasks in QGIS 3 to enable multi-thread background proces
     * Combination of the above two outputs
 
 * Outputs are in GeoTIFF format, in the projects projection
+<<<<<<< HEAD
 
 * The user can then select which outputs they wish to create; by default all outputs not currently in the workspace are selected for creation
+=======
+>>>>>>> 117fc70c93fae165c71fd6e8c8c06c26cefcb533
