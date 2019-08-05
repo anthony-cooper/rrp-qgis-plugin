@@ -165,7 +165,7 @@ class ImpactRasterCreator:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ':/plugins/impact_raster_creator/icon.png'
+        icon_path = ':/plugins/impact_raster_creator/impact_raster_creator_icon.png'
         self.add_action(
             icon_path,
             text=self.tr(u'Impact Raster Creator'),

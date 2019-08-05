@@ -1,5 +1,5 @@
 <RCC>
     <qresource prefix="/plugins/impact_raster_creator" >
-        <file>icon.png</file>
+        <file>impact_raster_creator_icon.png</file>
     </qresource>
 </RCC>

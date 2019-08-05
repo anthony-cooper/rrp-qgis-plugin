@@ -27,7 +27,7 @@ tags=python
 
 homepage=http://homepage
 category=Raster
-icon=icon.png
+icon=impact_raster_creator_icon.png
 # experimental flag
 experimental=True
 
@@ -44,4 +44,3 @@ Category of the plugin: Raster, Vector, Database or Web
 
 # If the plugin can run on QGIS Server.
 server=False
-

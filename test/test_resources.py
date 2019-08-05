@@ -31,7 +31,7 @@ class ImpactRasterCreatorDialogTest(unittest.TestCase):
 
     def test_icon_png(self):
         """Test we can click OK."""
-        path = ':/plugins/ImpactRasterCreator/icon.png'
+        path = ':/plugins/ImpactRasterCreator/impact_raster_creator_icon.png'
         icon = QIcon(path)
         self.assertFalse(icon.isNull())
 
@@ -39,6 +39,3 @@ if __name__ == "__main__":
     suite = unittest.makeSuite(ImpactRasterCreatorResourcesTest)
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
-
-
-
