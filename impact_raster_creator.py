@@ -390,8 +390,8 @@ class ImpactRasterCreator:
                 if let == strBas[len(strBas)-idx-1]:
                     strSuf = let + strSuf
                 else:
-                    strDev = strDev[:(len(strDev)-len(strSuf))]
-                    strBas = strBas[:(len(strBas)-len(strSuf))]
+                    strDev = strDev[:(len(strDev)-6)]
+                    strBas = strBas[:(len(strBas)-6)]
                     break
 
             joinedLayer[4] = strPre + '[' + strDev + ']-[' + strBas + ']_' + joinedLayer[2] + self.calcType
@@ -490,7 +490,7 @@ class ImpactRasterCalcTask(QgsTask):
 
         if calcRes == 0: #If the calculation worked
             #Process the temp output to remove nodata values
-            gdal.Translate(self.joinedLayer[5], gdal.Open('/vsimem/'+self.joinedLayer[4]+'.tif'), options=gdal.TranslateOptions(noData=-999))
+            gdal.Translate(self.joinedLayer[5], gdal.Open('/vsimem/'+self.joinedLayer[4]+'.tif'), options=gdal.TranslateOptions(noData=-999, outputSRS=QgsProject.instance().crs().authid()))
         else:
             self.exception = calcRes
             return False
