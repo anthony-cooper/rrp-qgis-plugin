@@ -33,7 +33,7 @@
    <property name="geometry">
     <rect>
      <x>200</x>
-     <y>20</y>
+     <y>40</y>
      <width>551</width>
      <height>21</height>
     </rect>
@@ -43,7 +43,7 @@
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>20</y>
+     <y>40</y>
      <width>161</width>
      <height>21</height>
     </rect>
@@ -82,7 +82,7 @@
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>110</y>
+     <y>100</y>
      <width>161</width>
      <height>21</height>
     </rect>
@@ -95,7 +95,7 @@
    <property name="geometry">
     <rect>
      <x>200</x>
-     <y>110</y>
+     <y>100</y>
      <width>511</width>
      <height>22</height>
     </rect>
@@ -108,7 +108,7 @@
    <property name="geometry">
     <rect>
      <x>720</x>
-     <y>110</y>
+     <y>100</y>
      <width>31</width>
      <height>21</height>
     </rect>
@@ -121,9 +121,9 @@
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>230</y>
+     <y>290</y>
      <width>711</width>
-     <height>421</height>
+     <height>361</height>
     </rect>
    </property>
    <property name="focusPolicy">
@@ -149,7 +149,7 @@
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>210</y>
+     <y>260</y>
      <width>711</width>
      <height>21</height>
     </rect>
@@ -158,27 +158,11 @@
     <string>Raster grids to be created (highlighted grey will be created)</string>
    </property>
   </widget>
-  <widget class="QRadioButton" name="radioButton_dh">
-   <property name="geometry">
-    <rect>
-     <x>210</x>
-     <y>150</y>
-     <width>251</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Impact (_dh)</string>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-  </widget>
   <widget class="QLabel" name="label_5">
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>150</y>
+     <y>130</y>
      <width>161</width>
      <height>21</height>
     </rect>
@@ -187,31 +171,63 @@
     <string>Grid type to create</string>
    </property>
   </widget>
-  <widget class="QRadioButton" name="radioButton_dh_dx">
+  <widget class="QLabel" name="label_6">
    <property name="geometry">
     <rect>
-     <x>210</x>
-     <y>170</y>
-     <width>271</width>
+     <x>40</x>
+     <y>10</y>
+     <width>161</width>
      <height>21</height>
     </rect>
    </property>
    <property name="text">
-    <string>Impact and Change in Extents (_dh_dx)</string>
+    <string>Select mode</string>
    </property>
   </widget>
-  <widget class="QRadioButton" name="radioButton_dx">
+  <widget class="QComboBox" name="comboBox_2">
    <property name="geometry">
     <rect>
-     <x>210</x>
-     <y>190</y>
-     <width>301</width>
+     <x>200</x>
+     <y>10</y>
+     <width>551</width>
      <height>21</height>
     </rect>
    </property>
-   <property name="text">
-    <string>Change in Extents (_dx)</string>
+  </widget>
+  <widget class="QTreeWidget" name="treeWidget">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>130</y>
+     <width>551</width>
+     <height>101</height>
+    </rect>
    </property>
+   <property name="editTriggers">
+    <set>QAbstractItemView::NoEditTriggers</set>
+   </property>
+   <property name="selectionMode">
+    <enum>QAbstractItemView::MultiSelection</enum>
+   </property>
+   <property name="columnCount">
+    <number>2</number>
+   </property>
+   <attribute name="headerVisible">
+    <bool>false</bool>
+   </attribute>
+   <attribute name="headerDefaultSectionSize">
+    <number>250</number>
+   </attribute>
+   <column>
+    <property name="text">
+     <string notr="true">1</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string notr="true">2</string>
+    </property>
+   </column>
   </widget>
  </widget>
  <resources/>
