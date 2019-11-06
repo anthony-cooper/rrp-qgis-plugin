@@ -228,6 +228,7 @@ class ImpactRasterCreator:
         self.dlg.comboBox.currentIndexChanged.connect(self.update)
         self.dlg.comboBox_2.currentIndexChanged.connect(self.setType)
         self.dlg.treeWidget.itemSelectionChanged.connect(self.update)
+        self.dlg.lineEdit.textEdited.connect(self.update)
 
         # show the dialog
         self.dlg.show()
