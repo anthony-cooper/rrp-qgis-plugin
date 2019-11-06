@@ -121,9 +121,9 @@
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>230</y>
+     <y>290</y>
      <width>711</width>
-     <height>421</height>
+     <height>361</height>
     </rect>
    </property>
    <property name="focusPolicy">
@@ -149,29 +149,13 @@
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>210</y>
+     <y>260</y>
      <width>711</width>
      <height>21</height>
     </rect>
    </property>
    <property name="text">
     <string>Raster grids to be created (highlighted grey will be created)</string>
-   </property>
-  </widget>
-  <widget class="QRadioButton" name="radioButton_dh">
-   <property name="geometry">
-    <rect>
-     <x>210</x>
-     <y>130</y>
-     <width>251</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Impact (_dh)</string>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
    </property>
   </widget>
   <widget class="QLabel" name="label_5">
@@ -187,136 +171,63 @@
     <string>Grid type to create</string>
    </property>
   </widget>
-  <widget class="QRadioButton" name="radioButton_dh_dx">
+  <widget class="QLabel" name="label_6">
    <property name="geometry">
     <rect>
-     <x>210</x>
-     <y>170</y>
-     <width>271</width>
+     <x>40</x>
+     <y>10</y>
+     <width>161</width>
      <height>21</height>
     </rect>
    </property>
    <property name="text">
-    <string>Impact and Change in Extents (_dh_dx)</string>
+    <string>Select mode</string>
    </property>
   </widget>
-  <widget class="QRadioButton" name="radioButton_dx">
+  <widget class="QComboBox" name="comboBox_2">
    <property name="geometry">
     <rect>
-     <x>210</x>
-     <y>190</y>
-     <width>301</width>
+     <x>200</x>
+     <y>10</y>
+     <width>551</width>
      <height>21</height>
     </rect>
    </property>
-   <property name="text">
-    <string>Change in Extents (_dx)</string>
-   </property>
   </widget>
-  <widget class="QRadioButton" name="radioButton_dd">
+  <widget class="QTreeWidget" name="treeWidget">
    <property name="geometry">
     <rect>
-     <x>470</x>
+     <x>200</x>
      <y>130</y>
-     <width>251</width>
-     <height>21</height>
+     <width>551</width>
+     <height>101</height>
     </rect>
    </property>
-   <property name="text">
-    <string>Impact (_dd)</string>
+   <property name="editTriggers">
+    <set>QAbstractItemView::NoEditTriggers</set>
    </property>
-   <property name="checkable">
+   <property name="selectionMode">
+    <enum>QAbstractItemView::MultiSelection</enum>
+   </property>
+   <property name="columnCount">
+    <number>2</number>
+   </property>
+   <attribute name="headerVisible">
     <bool>false</bool>
-   </property>
-   <property name="checked">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QRadioButton" name="radioButton_dd_dx">
-   <property name="geometry">
-    <rect>
-     <x>470</x>
-     <y>170</y>
-     <width>271</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Impact and Change in Extents (_dd_dx)</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QRadioButton" name="radioButton_dx_d">
-   <property name="geometry">
-    <rect>
-     <x>470</x>
-     <y>190</y>
-     <width>301</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Change in Extents (_dx)</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QRadioButton" name="radioButton_dd0">
-   <property name="geometry">
-    <rect>
-     <x>470</x>
-     <y>150</y>
-     <width>301</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Impact, including change from 0 (_dd0)</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QRadioButton" name="radioButton_Level">
-   <property name="geometry">
-    <rect>
-     <x>210</x>
-     <y>10</y>
-     <width>251</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Level Based</string>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="autoExclusive">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QRadioButton" name="radioButton_Depth">
-   <property name="geometry">
-    <rect>
-     <x>470</x>
-     <y>10</y>
-     <width>251</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Depth Based</string>
-   </property>
-   <property name="checked">
-    <bool>false</bool>
-   </property>
-   <property name="autoExclusive">
-    <bool>false</bool>
-   </property>
+   </attribute>
+   <attribute name="headerDefaultSectionSize">
+    <number>250</number>
+   </attribute>
+   <column>
+    <property name="text">
+     <string notr="true">1</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string notr="true">2</string>
+    </property>
+   </column>
   </widget>
  </widget>
  <resources/>

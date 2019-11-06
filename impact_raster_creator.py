@@ -206,58 +206,28 @@ class ImpactRasterCreator:
         try: self.dlg.comboBox.currentIndexChanged.disconnect()
         except Exception: pass
 
-
-        self.setType('l')
-        # # Initialise list of level layers
-        # self.impactLayers = []
-        # self.levelLayers = []
-        # layers = []
-        #
-        # # Fetch the currently loaded layers
-        # layers = self.load_all_layers(QgsProject.instance().layerTreeRoot().children(), layers)
-        #
-        # # Clear the contents of the comboBox from previous runs
-        # self.dlg.comboBox.clear()
-        #
-        # self.dlg.comboBox.setCurrentIndex(0)
-        #
-        # #Check through all loaded layers
-        # for layer in layers:
-        #     if layer.layer().type() == 1:                   #If they are rasters continue checking
-        #         if (layer.name()).find('h_Max') != -1:      #If the are h_max's
-        #             self.dlg.comboBox.addItem(layer.name()) #Add to the comboBox
-        #             self.levelLayers.append(layer)          #Add to the list of level layers
-        #             if (layer.name()).find('BAS') != -1:      #If the layer has BAS anywhere in it - tries to identify base layers
-        #                 self.dlg.comboBox.setCurrentIndex(self.dlg.comboBox.count()-1)  #If it is a base layer select it, then set baseLoc to it, up 3 levels, then Impact folder
-        #                 self.baseLoc = os.path.abspath(os.path.join(os.path.dirname(layer.layer().source()), os.path.pardir, os.path.pardir, os.path.pardir, 'Impact'))
-        #         elif (layer.name()).find('_dh') != -1 or (layer.name()).find('_dx') != -1:  #If are _dh, _dx or _dh_dx
-        #             self.impactLayers.append(layer)         #Add to the list of impact layers
+        #Set up the type selector
+        self.dlg.comboBox_2.clear()
+        self.dlg.comboBox_2.addItem('Level')
+        self.dlg.comboBox_2.addItem('Depth')
+        self.dlg.comboBox_2.addItem('Hazard')
+        self.dlg.comboBox_2.addItem('Ground')
+        self.dlg.comboBox_2.setCurrentIndex(0)
+        self.setType()
 
         #If no base layer has been selected, pick the first
         if self.dlg.comboBox.currentIndex() == -1:
             self.dlg.comboBox.setCurrentIndex(0)
         #Set default to generate _dh
-        self.dlg.radioButton_dh.setChecked(True)
         self.calcType = '_dh'
 
         #Update the UI and lists
         self.update()
 
-        #Connect the update to changes in the combobox or radio buttons
+        #Connect the update to changes in the changing items
         self.dlg.comboBox.currentIndexChanged.connect(self.update)
-        self.dlg.radioButton_dh.toggled.connect(self.update)
-        self.dlg.radioButton_dh_dx.toggled.connect(self.update)
-        self.dlg.radioButton_dx.toggled.connect(self.update)
-        self.dlg.radioButton_dd.toggled.connect(self.update)
-        self.dlg.radioButton_dd_dx.toggled.connect(self.update)
-        self.dlg.radioButton_dx_d.toggled.connect(self.update)
-        self.dlg.radioButton_dd0.toggled.connect(self.update)
-
-        self.dlg.radioButton_Depth.toggled.connect(lambda: self.setType('d'))
-        self.dlg.radioButton_Level.toggled.connect(lambda: self.setType('l') )
-        r_group=QButtonGroup(QWidget()) #  group
-        r_group.addButton(self.dlg.radioButton_Level)
-        r_group.addButton(self.dlg.radioButton_Depth)
+        self.dlg.comboBox_2.currentIndexChanged.connect(self.setType)
+        self.dlg.treeWidget.itemSelectionChanged.connect(self.update)
 
         # show the dialog
         self.dlg.show()
@@ -281,22 +251,22 @@ class ImpactRasterCreator:
                         QgsProject.instance().removeMapLayer(joinedLayer[7].layerId())      #Unload the layer from the project
 
                     #Set the calculation type
-                    if self.calcType == '_dh_dx' or self.calcType == '_dd_dx':
+                    if joinedLayer[8] == '_dh_dx' or joinedLayer[8] == '_dd_dx':
                         calcDo = '((A@1 = -999) AND (B@1 = -999)) * (-999) + ' + \
                         '((A@1 = -999) AND (B@1 != -999)) * -99 + ' + \
                         '((A@1 != -999) AND (B@1 = -999)) * 99 + ' + \
                         '((A@1 != -999) AND (B@1 != -999)) * (A@1 - B@1)'
-                    elif self.calcType == '_dx' or self.calcType == '_dx_d':
+                    elif joinedLayer[8] == '_dx':
                         calcDo = '((A@1 = -999) AND (B@1 = -999)) * (-999) + ' + \
                         '((A@1 = -999) AND (B@1 != -999)) * -99 + ' + \
                         '((A@1 != -999) AND (B@1 = -999)) * 99 + ' + \
                         '((A@1 != -999) AND (B@1 != -999)) * (-999)'
-                    elif self.calcType == '_dd0':
+                    elif joinedLayer[8] == '_dd0' or joinedLayer[8] == '_dZ':
                         calcDo = '((A@1 = -999) AND (B@1 = -999)) * (-999) + ' + \
                         '((A@1 = -999) AND (B@1 != -999)) * (B@1) + ' + \
                         '((A@1 != -999) AND (B@1 = -999)) * (A@1) + ' + \
                         '((A@1 != -999) AND (B@1 != -999)) * (A@1 - B@1)'
-                    elif self.calcType == '_dh' or self.calcType == '_dd':
+                    elif joinedLayer[8] == '_dh' or joinedLayer[8] == '_dd'or joinedLayer[8] == '_dDEM':
                         calcDo = '((A@1 = -999) AND (B@1 = -999)) * (-999) + ' + \
                         '((A@1 = -999) AND (B@1 != -999)) * (-999) + ' + \
                         '((A@1 != -999) AND (B@1 = -999)) * (-999) + ' + \
@@ -317,23 +287,10 @@ class ImpactRasterCreator:
         if self.baseLoc != '':
             self.dlg.outputFolderDlg.setText(self.baseLoc)
 
-        #Set calc type - see which radio button is checked
-        if self.dlg.radioButton_dh.isChecked() is True:
-            self.calcType = '_dh'
-        elif self.dlg.radioButton_dx.isChecked() is True:
-            self.calcType = '_dx'
-        elif self.dlg.radioButton_dh_dx.isChecked() is True:
-            self.calcType = '_dh_dx'
-        elif self.dlg.radioButton_dd.isChecked() is True:
-            self.calcType = '_dd'
-        elif self.dlg.radioButton_dd0.isChecked() is True:
-            self.calcType = '_dd0'
-        elif self.dlg.radioButton_dx_d.isChecked() is True:
-            self.calcType = '_dx_d'
-        elif self.dlg.radioButton_dd_dx.isChecked() is True:
-            self.calcType = '_dd_dx'
-        else:
-            self.calcType = '_dh'
+        #Load all calc types
+        calcTypes = []
+        for item in self.dlg.treeWidget.selectedItems():
+            calcTypes.append(item.text(1))
 
         self.joinedLayers = [] #Clear list of joined layers
 
@@ -366,7 +323,8 @@ class ImpactRasterCreator:
         for devLayer in devLayers:  #For every developed layer
             for baseLayer in baseLayers: #check every baselayer
                 if devLayer[1] == baseLayer[1]: #If it finds a baselayer with same event, add it to the list of joined layers and stop looking
-                    self.joinedLayers.append([devLayer[0], baseLayer[0], devLayer[1], True, '', '',QListWidgetItem(),''])
+                    for calcType in calcTypes:
+                        self.joinedLayers.append([devLayer[0], baseLayer[0], devLayer[1], True, '', '',QListWidgetItem(),'',calcType])
                     break
 
         #Process the joined layers to develop names and attributes, then add them to the list of layers
@@ -391,7 +349,7 @@ class ImpactRasterCreator:
                     strBas = strBas[:(len(strBas)-6)]
                     break
 
-            joinedLayer[4] = strPre + '[' + strDev + ']-[' + strBas + ']_' + joinedLayer[2] + self.calcType
+            joinedLayer[4] = strPre + '[' + strDev + ']-[' + strBas + ']_' + joinedLayer[2] + joinedLayer[8]
 
             for impactLayer in self.impactLayers:
                 if joinedLayer[4] == impactLayer.name():
@@ -427,42 +385,35 @@ class ImpactRasterCreator:
                 elif (layer.name()).find('_dh') != -1 or (layer.name()).find('_dd') or (layer.name()).find('_dx') != -1:  #If are _dh, _dx or _dh_dx
                     self.impactLayers.append(layer)         #Add to the list of impact layers
 
-    def setType(self, ty):
-        if ty == 'd':
-            self.searchType = 'd_Max'
-            self.dlg.radioButton_dh.setEnabled(False)
-            self.dlg.radioButton_dh_dx.setEnabled(False)
-            self.dlg.radioButton_dx.setEnabled(False)
-            self.dlg.radioButton_dd.setEnabled(True)
-            self.dlg.radioButton_dd_dx.setEnabled(True)
-            self.dlg.radioButton_dx_d.setEnabled(True)
-            self.dlg.radioButton_dd0.setEnabled(True)
-            self.dlg.radioButton_dh.setChecked(False)
-            self.dlg.radioButton_dh_dx.setChecked(False)
-            self.dlg.radioButton_dx.setChecked(False)
-            self.dlg.radioButton_dd.setChecked(True)
-            self.dlg.radioButton_dd_dx.setChecked(False)
-            self.dlg.radioButton_dx_d.setChecked(False)
-            self.dlg.radioButton_dd0.setChecked(False)
-
-
-        else:
+    def setType(self):
+        if self.dlg.comboBox_2.currentIndex() == 0:
             self.searchType = 'h_Max'
-            self.dlg.radioButton_dh.setEnabled(True)
-            self.dlg.radioButton_dh_dx.setEnabled(True)
-            self.dlg.radioButton_dx.setEnabled(True)
-            self.dlg.radioButton_dd.setEnabled(False)
-            self.dlg.radioButton_dd_dx.setEnabled(False)
-            self.dlg.radioButton_dx_d.setEnabled(False)
-            self.dlg.radioButton_dd0.setEnabled(False)
-            self.dlg.radioButton_dh.setChecked(True)
-            self.dlg.radioButton_dh.setChecked(False)
-            self.dlg.radioButton_dh_dx.setChecked(False)
-            self.dlg.radioButton_dx.setChecked(False)
-            self.dlg.radioButton_dd.setChecked(False)
-            self.dlg.radioButton_dd_dx.setChecked(False)
-            self.dlg.radioButton_dx_d.setChecked(False)
-            self.dlg.radioButton_dd0.setChecked(False)
+            self.dlg.treeWidget.clear()
+            QTreeWidgetItem(self.dlg.treeWidget,['Impact','_dh'])
+            QTreeWidgetItem(self.dlg.treeWidget,['Change in Extents','_dx'])
+            QTreeWidgetItem(self.dlg.treeWidget,['Impact and Change in Extents','_dh_dx'])
+        elif self.dlg.comboBox_2.currentIndex() == 1:
+            self.searchType = 'd_Max'
+            self.dlg.treeWidget.clear()
+            QTreeWidgetItem(self.dlg.treeWidget,['Impact','_dd'])
+            QTreeWidgetItem(self.dlg.treeWidget,['Impact, including from no flooding','_dd0'])
+            QTreeWidgetItem(self.dlg.treeWidget,['Change in Extents','_dx'])
+            QTreeWidgetItem(self.dlg.treeWidget,['Impact and Change in Extents','_dd_dx'])
+        elif self.dlg.comboBox_2.currentIndex() == 2:
+            self.searchType = 'ZUK1_Max'
+            self.dlg.treeWidget.clear()
+            QTreeWidgetItem(self.dlg.treeWidget,['Change in Hazard','_dZ'])
+        elif self.dlg.comboBox_2.currentIndex() == 3:
+            self.searchType = 'DEM_Z'
+            self.dlg.treeWidget.clear()
+            QTreeWidgetItem(self.dlg.treeWidget,['Difference','_dDEM'])
+        else:
+            self.searchType = 'XYZ'
+            self.dlg.treeWidget.clear()
+
+
+
+
 
 
         self.setUp()
