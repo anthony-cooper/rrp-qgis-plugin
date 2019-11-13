@@ -299,26 +299,30 @@ class ImpactRasterCreator:
 
         self.dlg.rasterList.clear() #Clear list of rasters in UI
 
+        baseLayer = 'XYZ'
         for event in events: #For each event
-            eloc = -1
-            if self.dlg.comboBox.currentIndex() >= 0 and self.dlg.comboBox.currentIndex() < len(self.levelLayers):
-                eloc = self.levelLayers[self.dlg.comboBox.currentIndex()].name().find(event)    #try to find the event in the layer name, set it to eloc
-            if eloc != -1:      #Once the event has been found (hence eloc != -1)
-                baseLayer = (self.levelLayers[self.dlg.comboBox.currentIndex()].name()).replace(event,'~event~') #sub ~event~ in place of the actual event in the layer name
-                break   #Stop trying to find other events in the layer
+            if len(event)>0: #Check an event has been added
+                eloc = -1
+                if self.dlg.comboBox.currentIndex() >= 0 and self.dlg.comboBox.currentIndex() < len(self.levelLayers):
+                    eloc = self.levelLayers[self.dlg.comboBox.currentIndex()].name().find(event)    #try to find the event in the layer name, set it to eloc
+                if eloc != -1:      #Once the event has been found (hence eloc != -1)
+                    baseLayer = (self.levelLayers[self.dlg.comboBox.currentIndex()].name()).replace(event,'~event~') #sub ~event~ in place of the actual event in the layer name
+                    break   #Stop trying to find other events in the layer
 
         baseLayers = [] #blank the list of base layers
         devLayers = []  #blank the list of developed layers
-        for levelLayer in self.levelLayers: #for all the water level layers
-            for event in events:            #check for each event
-                eloc = levelLayer.name().find(event) #can the event name be found
-                if eloc != -1:  #if event can be found
-                    genLayer = (levelLayer.name()).replace(event,'~event~') #sub ~event~ in place of the actual event in the layer name
-                    if genLayer == baseLayer: # if this layer has the same name as the baselayer its a baselayer, so store it with its event
-                        baseLayers.append([levelLayer, event])
-                    else:                     # else its a developed layer so store it with that
-                        devLayers.append([levelLayer, event])
-                    break
+
+        if baseLayer != 'XYZ': #Check that baselayer has been processed with event
+            for levelLayer in self.levelLayers: #for all the water level layers
+                for event in events:            #check for each event
+                    eloc = levelLayer.name().find(event) #can the event name be found
+                    if eloc != -1:  #if event can be found
+                        genLayer = (levelLayer.name()).replace(event,'~event~') #sub ~event~ in place of the actual event in the layer name
+                        if genLayer == baseLayer: # if this layer has the same name as the baselayer its a baselayer, so store it with its event
+                            baseLayers.append([levelLayer, event])
+                        else:                     # else its a developed layer so store it with that
+                            devLayers.append([levelLayer, event])
+                        break
 
         #Joined developed and base layers together
         for devLayer in devLayers:  #For every developed layer
@@ -334,6 +338,9 @@ class ImpactRasterCreator:
             strPre = ''
             strDev = ''
             strBas = ''
+            strEnd = len(self.searchType)+1
+
+
             for idx, let in enumerate(joinedLayer[0].name()):
                 if let == joinedLayer[1].name()[idx]:
                     strPre = strPre + let
@@ -346,8 +353,8 @@ class ImpactRasterCreator:
                 if let == strBas[len(strBas)-idx-1]:
                     strSuf = let + strSuf
                 else:
-                    strDev = strDev[:(len(strDev)-6)]
-                    strBas = strBas[:(len(strBas)-6)]
+                    strDev = strDev[:(len(strDev)-strEnd)]
+                    strBas = strBas[:(len(strBas)-strEnd)]
                     break
 
             joinedLayer[4] = strPre + '[' + strDev + ']-[' + strBas + ']_' + joinedLayer[2] + joinedLayer[8]
