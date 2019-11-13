@@ -262,12 +262,12 @@ class ImpactRasterCreator:
                         '((A@1 = -999) AND (B@1 != -999)) * -99 + ' + \
                         '((A@1 != -999) AND (B@1 = -999)) * 99 + ' + \
                         '((A@1 != -999) AND (B@1 != -999)) * (-999)'
-                    elif joinedLayer[8] == '_dd0' or joinedLayer[8] == '_dZ':
+                    elif joinedLayer[8] == '_dd0' or joinedLayer[8] == '_dZUK':
                         calcDo = '((A@1 = -999) AND (B@1 = -999)) * (-999) + ' + \
                         '((A@1 = -999) AND (B@1 != -999)) * (B@1) + ' + \
                         '((A@1 != -999) AND (B@1 = -999)) * (A@1) + ' + \
                         '((A@1 != -999) AND (B@1 != -999)) * (A@1 - B@1)'
-                    elif joinedLayer[8] == '_dh' or joinedLayer[8] == '_dd'or joinedLayer[8] == '_dDEM':
+                    elif joinedLayer[8] == '_dh' or joinedLayer[8] == '_dd'or joinedLayer[8] == '_dDEMZ':
                         calcDo = '((A@1 = -999) AND (B@1 = -999)) * (-999) + ' + \
                         '((A@1 = -999) AND (B@1 != -999)) * (-999) + ' + \
                         '((A@1 != -999) AND (B@1 = -999)) * (-999) + ' + \
@@ -383,7 +383,7 @@ class ImpactRasterCreator:
                     if (layer.name()).find('BAS') != -1:      #If the layer has BAS anywhere in it - tries to identify base layers
                         self.dlg.comboBox.setCurrentIndex(self.dlg.comboBox.count()-1)  #If it is a base layer select it, then set baseLoc to it, up 3 levels, then Impact folder
                         self.baseLoc = os.path.abspath(os.path.join(os.path.dirname(layer.layer().source()), os.path.pardir, os.path.pardir, os.path.pardir, 'Impact'))
-                elif (layer.name()).find('_dh') != -1 or (layer.name()).find('_dd') or (layer.name()).find('_dx') != -1:  #If are _dh, _dx or _dh_dx
+                elif (layer.name()).find('_dh') != -1 or (layer.name()).find('_dd') != -1 or (layer.name()).find('_dx') != -1 or (layer.name()).find('_dZUK') != -1 or (layer.name()).find('_dDEM') != -1:  #If are _dh, _dx or _dh_dx
                     self.impactLayers.append(layer)         #Add to the list of impact layers
 
     def setType(self):
@@ -403,11 +403,11 @@ class ImpactRasterCreator:
         elif self.dlg.comboBox_2.currentIndex() == 2:
             self.searchType = 'ZUK1_Max'
             self.dlg.treeWidget.clear()
-            QTreeWidgetItem(self.dlg.treeWidget,['Change in Hazard','_dZ'])
+            QTreeWidgetItem(self.dlg.treeWidget,['Change in Hazard','_dZUK'])
         elif self.dlg.comboBox_2.currentIndex() == 3:
             self.searchType = 'DEM_Z'
             self.dlg.treeWidget.clear()
-            QTreeWidgetItem(self.dlg.treeWidget,['Difference','_dDEM'])
+            QTreeWidgetItem(self.dlg.treeWidget,['Difference','_dDEMZ'])
         else:
             self.searchType = 'XYZ'
             self.dlg.treeWidget.clear()
