@@ -381,17 +381,19 @@ class ImpactRasterCreator:
         self.dlg.comboBox.clear()
 
         self.dlg.comboBox.setCurrentIndex(0)
-
+        #print(layers)
         for layer in layers:
-            if layer.layer().type() == 1:                   #If they are rasters continue checking
-                if (layer.name()).find(self.searchType) != -1:      #If the are h_max's
-                    self.dlg.comboBox.addItem(layer.name()) #Add to the comboBox
-                    self.levelLayers.append(layer)          #Add to the list of level layers
-                    if (layer.name()).find('BAS') != -1:      #If the layer has BAS anywhere in it - tries to identify base layers
-                        self.dlg.comboBox.setCurrentIndex(self.dlg.comboBox.count()-1)  #If it is a base layer select it, then set baseLoc to it, up 3 levels, then Impact folder
-                        self.baseLoc = os.path.abspath(os.path.join(os.path.dirname(layer.layer().source()), os.path.pardir, os.path.pardir, os.path.pardir, 'Impact'))
-                elif (layer.name()).find('_dh') != -1 or (layer.name()).find('_dd') != -1 or (layer.name()).find('_dx') != -1 or (layer.name()).find('_dZUK') != -1 or (layer.name()).find('_dDEM') != -1:  #If are _dh, _dx or _dh_dx
-                    self.impactLayers.append(layer)         #Add to the list of impact layers
+            #print(layer.layer())
+            if layer.layer() is not None:
+                if layer.layer().type() == 1:                   #If they are rasters continue checking
+                    if (layer.name()).find(self.searchType) != -1:      #If the are h_max's
+                        self.dlg.comboBox.addItem(layer.name()) #Add to the comboBox
+                        self.levelLayers.append(layer)          #Add to the list of level layers
+                        if (layer.name()).find('BAS') != -1:      #If the layer has BAS anywhere in it - tries to identify base layers
+                            self.dlg.comboBox.setCurrentIndex(self.dlg.comboBox.count()-1)  #If it is a base layer select it, then set baseLoc to it, up 3 levels, then Impact folder
+                            self.baseLoc = os.path.abspath(os.path.join(os.path.dirname(layer.layer().source()), os.path.pardir, os.path.pardir, os.path.pardir, 'Impact'))
+                    elif (layer.name()).find('_dh') != -1 or (layer.name()).find('_dd') != -1 or (layer.name()).find('_dx') != -1 or (layer.name()).find('_dZUK') != -1 or (layer.name()).find('_dDEM') != -1:  #If are _dh, _dx or _dh_dx
+                        self.impactLayers.append(layer)         #Add to the list of impact layers
 
     def setType(self):
         if self.dlg.comboBox_2.currentIndex() == 0:
