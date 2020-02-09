@@ -364,8 +364,9 @@ class ImpactRasterCreator:
                     break
 
             for idx, let in enumerate(reversed(strDev)):
-                if let == strBas[len(strBas)-idx-1]:
+                if let == strBas[len(strBas)-idx-1] and let != ']':
                     strSuf = let + strSuf
+                    #print(strSuf)
                 else:
                     strDev = strDev[:(len(strDev)-strEnd-1)]
                     strBas = strBas[:(len(strBas)-strEnd-1)]
