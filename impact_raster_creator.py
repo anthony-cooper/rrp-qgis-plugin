@@ -354,11 +354,11 @@ class ImpactRasterCreator:
 
 
             for idx, let in enumerate(joinedLayer[0].name()):
-                if let == joinedLayer[1].name()[idx]:
+                if let == joinedLayer[1].name()[idx] and let != '[':
                     strPre = strPre + let
                 else:
-                    strDev = joinedLayer[0].name()[(idx-len(joinedLayer[0].name())):]
-                    strBas = joinedLayer[1].name()[(idx-len(joinedLayer[1].name())):]
+                    strDev = joinedLayer[0].name()[idx-len(joinedLayer[0].name())+len(joinedLayer[2])+2:]
+                    strBas = joinedLayer[1].name()[idx-len(joinedLayer[1].name())+len(joinedLayer[2])+2:]
                     #print(strDev)
                     #print(strBas)
                     break
@@ -373,8 +373,7 @@ class ImpactRasterCreator:
                     #print(strDev)
                     #print(strBas)
                     break
-
-            joinedLayer[4] = strPre + strDev + ']-[' + strBas + ']' + joinedLayer[8]
+            joinedLayer[4] = strPre +joinedLayer[2] + '_[' + strDev + ']-[' + strBas + ']' + joinedLayer[8]
 
             for impactLayer in self.impactLayers:
                 if joinedLayer[4] == impactLayer.name():
