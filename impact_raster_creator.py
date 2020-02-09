@@ -295,19 +295,30 @@ class ImpactRasterCreator:
 
         self.joinedLayers = [] #Clear list of joined layers
 
-        events = (self.dlg.lineEdit.text()).split(",") #Create list of events from given string
+        AEPs = (self.dlg.lineEdit.text()).split(",") #Create list of events from given string
+        ccUps = (self.dlg.lineEdit_2.text()).split(",") #Create list of climate change uplifts
+
+        events =[]
+        for AEP in AEPs:
+            for ccUp in ccUps:
+                events.append('['+AEP+'_CC'+ccUp+']')
+        #print(events)
 
         self.dlg.rasterList.clear() #Clear list of rasters in UI
 
         baseLayer = 'XYZ'
         for event in events: #For each event
             if len(event)>0: #Check an event has been added
+                #print(event)
                 eloc = -1
                 if self.dlg.comboBox.currentIndex() >= 0 and self.dlg.comboBox.currentIndex() < len(self.levelLayers):
                     eloc = self.levelLayers[self.dlg.comboBox.currentIndex()].name().find(event)    #try to find the event in the layer name, set it to eloc
+                    #print(self.levelLayers[self.dlg.comboBox.currentIndex()].name())
                 if eloc != -1:      #Once the event has been found (hence eloc != -1)
                     baseLayer = (self.levelLayers[self.dlg.comboBox.currentIndex()].name()).replace(event,'~event~') #sub ~event~ in place of the actual event in the layer name
                     break   #Stop trying to find other events in the layer
+        #print(baseLayer)
+
 
         baseLayers = [] #blank the list of base layers
         devLayers = []  #blank the list of developed layers
@@ -323,7 +334,8 @@ class ImpactRasterCreator:
                         else:                     # else its a developed layer so store it with that
                             devLayers.append([levelLayer, event])
                         break
-
+        #print(baseLayers)
+        #print(devLayers)
         #Joined developed and base layers together
         for devLayer in devLayers:  #For every developed layer
             for baseLayer in baseLayers: #check every baselayer
@@ -347,17 +359,21 @@ class ImpactRasterCreator:
                 else:
                     strDev = joinedLayer[0].name()[(idx-len(joinedLayer[0].name())):]
                     strBas = joinedLayer[1].name()[(idx-len(joinedLayer[1].name())):]
+                    #print(strDev)
+                    #print(strBas)
                     break
 
             for idx, let in enumerate(reversed(strDev)):
                 if let == strBas[len(strBas)-idx-1]:
                     strSuf = let + strSuf
                 else:
-                    strDev = strDev[:(len(strDev)-strEnd)]
-                    strBas = strBas[:(len(strBas)-strEnd)]
+                    strDev = strDev[:(len(strDev)-strEnd-1)]
+                    strBas = strBas[:(len(strBas)-strEnd-1)]
+                    #print(strDev)
+                    #print(strBas)
                     break
 
-            joinedLayer[4] = strPre + '[' + strDev + ']-[' + strBas + ']_' + joinedLayer[2] + joinedLayer[8]
+            joinedLayer[4] = strPre + strDev + ']-[' + strBas + ']' + joinedLayer[8]
 
             for impactLayer in self.impactLayers:
                 if joinedLayer[4] == impactLayer.name():

@@ -75,14 +75,14 @@
     </rect>
    </property>
    <property name="text">
-    <string>0002,0005,0010,0015,0020,0025,0030,0050,0075,0100,0200,1000,C100</string>
+    <string>50-00,20-00,10-00,06-67,05-00,04-00,03-33,03-00,02-00,01-33,01-00,00-67,00-50,00-20,00-10,00-01</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_3">
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>100</y>
+     <y>130</y>
      <width>161</width>
      <height>21</height>
     </rect>
@@ -95,7 +95,7 @@
    <property name="geometry">
     <rect>
      <x>200</x>
-     <y>100</y>
+     <y>130</y>
      <width>511</width>
      <height>22</height>
     </rect>
@@ -108,7 +108,7 @@
    <property name="geometry">
     <rect>
      <x>720</x>
-     <y>100</y>
+     <y>130</y>
      <width>31</width>
      <height>21</height>
     </rect>
@@ -162,7 +162,7 @@
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>130</y>
+     <y>160</y>
      <width>161</width>
      <height>21</height>
     </rect>
@@ -198,7 +198,7 @@
    <property name="geometry">
     <rect>
      <x>200</x>
-     <y>130</y>
+     <y>160</y>
      <width>551</width>
      <height>101</height>
     </rect>
@@ -228,6 +228,32 @@
      <string notr="true">2</string>
     </property>
    </column>
+  </widget>
+  <widget class="QLabel" name="label_7">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>100</y>
+     <width>161</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>List climate change uplifts</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEdit_2">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>100</y>
+     <width>551</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>00,10,15,20,25,30,35,40,50,60,70</string>
+   </property>
   </widget>
  </widget>
  <resources/>
