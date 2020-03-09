@@ -405,9 +405,9 @@ class ImpactRasterCreator:
                     if (layer.name()).find(self.searchType) != -1:      #If the are h_max's
                         self.dlg.comboBox.addItem(layer.name()) #Add to the comboBox
                         self.levelLayers.append(layer)          #Add to the list of level layers
-                        if (layer.name()).find('BAS') != -1:      #If the layer has BAS anywhere in it - tries to identify base layers
-                            self.dlg.comboBox.setCurrentIndex(self.dlg.comboBox.count()-1)  #If it is a base layer select it, then set baseLoc to it, up 3 levels, then Impact folder
-                            self.baseLoc = os.path.abspath(os.path.join(os.path.dirname(layer.layer().source()), os.path.pardir, os.path.pardir, os.path.pardir, 'Impact'))
+                        if (layer.name()).find('BAS') != -1 or  (layer.name()).find('Bas') != -1 or  (layer.name()).find('EXG') != -1 or  (layer.name()).find('Exg') != -1 or  (layer.name()).find('Exist') != -1 or  (layer.name()).find('EXIST') != -1 or  (layer.name()).find('DEF') != -1 or  (layer.name()).find('Def') != -1:      #If the layer has BAS anywhere in it - tries to identify base layers
+                            self.dlg.comboBox.setCurrentIndex(self.dlg.comboBox.count()-1)  #If it is a base layer select it, then set baseLoc to it, up 4 levels, then Impact folder
+                            self.baseLoc = os.path.abspath(os.path.join(os.path.dirname(layer.layer().source()), os.path.pardir, os.path.pardir, os.path.pardir,os.path.pardir, 'Impact'))
                     elif (layer.name()).find('_dh') != -1 or (layer.name()).find('_dd') != -1 or (layer.name()).find('_dx') != -1 or (layer.name()).find('_dZUK') != -1 or (layer.name()).find('_dDEM') != -1:  #If are _dh, _dx or _dh_dx
                         self.impactLayers.append(layer)         #Add to the list of impact layers
 
