@@ -228,7 +228,7 @@ class ImpactRasterCreator:
         self.dlg.comboBox.currentIndexChanged.connect(self.update)
         self.dlg.comboBox_2.currentIndexChanged.connect(self.setType)
         self.dlg.treeWidget.itemSelectionChanged.connect(self.update)
-        self.dlg.lineEdit.textEdited.connect(self.update)
+        #self.dlg.lineEdit.textEdited.connect(self.update)
 
         # show the dialog
         self.dlg.show()
@@ -295,45 +295,53 @@ class ImpactRasterCreator:
 
         self.joinedLayers = [] #Clear list of joined layers
 
-        AEPs = (self.dlg.lineEdit.text()).split(",") #Create list of events from given string
-        ccUps = (self.dlg.lineEdit_2.text()).split(",") #Create list of climate change uplifts
-
-        events =[]
-        for AEP in AEPs:
-            for ccUp in ccUps:
-                events.append('['+AEP+'_CC'+ccUp+']')
-        #print(events)
+        # AEPs = (self.dlg.lineEdit.text()).split(",") #Create list of events from given string
+        # ccUps = (self.dlg.lineEdit_2.text()).split(",") #Create list of climate change uplifts
+        #
+        # events =[]
+        # for AEP in AEPs:
+        #     for ccUp in ccUps:
+        #         events.append('['+AEP+'_CC'+ccUp+']')
+        # #print(events)
 
         self.dlg.rasterList.clear() #Clear list of rasters in UI
 
         baseLayer = 'XYZ'
-        for event in events: #For each event
-            if len(event)>0: #Check an event has been added
-                #print(event)
-                eloc = -1
-                if self.dlg.comboBox.currentIndex() >= 0 and self.dlg.comboBox.currentIndex() < len(self.levelLayers):
-                    eloc = self.levelLayers[self.dlg.comboBox.currentIndex()].name().find(event)    #try to find the event in the layer name, set it to eloc
-                    #print(self.levelLayers[self.dlg.comboBox.currentIndex()].name())
-                if eloc != -1:      #Once the event has been found (hence eloc != -1)
-                    baseLayer = (self.levelLayers[self.dlg.comboBox.currentIndex()].name()).replace(event,'~event~') #sub ~event~ in place of the actual event in the layer name
-                    break   #Stop trying to find other events in the layer
-        #print(baseLayer)
-
-
+        # for event in events: #For each event
+        #     if len(event)>0: #Check an event has been added
+        #         #print(event)
+        #         eloc = -1
+        #         if self.dlg.comboBox.currentIndex() >= 0 and self.dlg.comboBox.currentIndex() < len(self.levelLayers):
+        #             eloc = self.levelLayers[self.dlg.comboBox.currentIndex()].name().find(event)    #try to find the event in the layer name, set it to eloc
+        #             #print(self.levelLayers[self.dlg.comboBox.currentIndex()].name())
+        #         if eloc != -1:      #Once the event has been found (hence eloc != -1)
+        #             baseLayer = (self.levelLayers[self.dlg.comboBox.currentIndex()].name()).replace(event,'~event~') #sub ~event~ in place of the actual event in the layer name
+        #             break   #Stop trying to find other events in the layer
+        # #print(baseLayer)
+        baseLayer = self.levelLayers[self.dlg.comboBox.currentIndex()].name()
+        bS = baseLayer.find('[')
+        bE = baseLayer.find(']')
+        baseLayer = baseLayer[:bS+1] + '~events~' + baseLayer[bE:]
         baseLayers = [] #blank the list of base layers
         devLayers = []  #blank the list of developed layers
 
         if baseLayer != 'XYZ': #Check that baselayer has been processed with event
             for levelLayer in self.levelLayers: #for all the water level layers
-                for event in events:            #check for each event
-                    eloc = levelLayer.name().find(event) #can the event name be found
-                    if eloc != -1:  #if event can be found
-                        genLayer = (levelLayer.name()).replace(event,'~event~') #sub ~event~ in place of the actual event in the layer name
-                        if genLayer == baseLayer: # if this layer has the same name as the baselayer its a baselayer, so store it with its event
-                            baseLayers.append([levelLayer, event])
-                        else:                     # else its a developed layer so store it with that
-                            devLayers.append([levelLayer, event])
-                        break
+                #for event in events:            #check for each event
+                #eloc = levelLayer.name().find(event) #can the event name be found
+                #if eloc != -1:  #if event can be found
+
+                genLayer = levelLayer.name() #sub ~event~ in place of the actual event in the layer name
+                gS = genLayer.find('[')
+                gE = genLayer.find(']')
+                event = genLayer[gS+1:gE]
+                genLayer = genLayer[:gS+1] + '~events~' + genLayer[gE:]
+                #print(genLayer)
+                if genLayer == baseLayer: # if this layer has the same name as the baselayer its a baselayer, so store it with its event
+                    baseLayers.append([levelLayer, event])
+                else:                     # else its a developed layer so store it with that
+                    devLayers.append([levelLayer, event])
+                        #break
         #print(baseLayers)
         #print(devLayers)
         #Joined developed and base layers together
@@ -351,7 +359,6 @@ class ImpactRasterCreator:
             strDev = ''
             strBas = ''
             strEnd = len(self.searchType)+1
-
 
             for idx, let in enumerate(joinedLayer[0].name()):
                 if let == joinedLayer[1].name()[idx] and let != '[':
@@ -373,7 +380,9 @@ class ImpactRasterCreator:
                     #print(strDev)
                     #print(strBas)
                     break
-            joinedLayer[4] = strPre +joinedLayer[2] + '_[' + strDev + ']-[' + strBas + ']' + joinedLayer[8]
+            print(strBas)
+            print(strDev)
+            joinedLayer[4] = strPre +'['+joinedLayer[2] + ']_[' + strDev[2:] + ']-[' + strBas[2:] + ']' + joinedLayer[8]
 
             for impactLayer in self.impactLayers:
                 if joinedLayer[4] == impactLayer.name():
