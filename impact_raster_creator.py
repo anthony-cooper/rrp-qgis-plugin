@@ -426,7 +426,7 @@ class ImpactRasterCreator:
             QTreeWidgetItem(self.dlg.treeWidget,['Change in Extents','_dx'])
             QTreeWidgetItem(self.dlg.treeWidget,['Impact and Change in Extents','_dd_dx'])
         elif self.dlg.comboBox_2.currentIndex() == 2:
-            self.searchType = 'ZUK1_Max'
+            self.searchType = 'ZUK0_Max'
             self.dlg.treeWidget.clear()
             QTreeWidgetItem(self.dlg.treeWidget,['Change in Hazard','_dZUK'])
         elif self.dlg.comboBox_2.currentIndex() == 3:
