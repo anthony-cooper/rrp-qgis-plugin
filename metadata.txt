@@ -5,12 +5,12 @@
 [general]
 name=Impact Raster Creator
 qgisMinimumVersion=3.0
-description=This plugin generates flood impact maps
-version=0.1
+description=This plugin generates flood impact maps - this release relies on using [] to demark the event location in the name
+version=0.2
 author=Anthony Cooper
 email=anthony.cooper@outlook.com
 
-about=This plugin creates flood impact maps from TUFLOW h_max grid outputs
+about=This plugin creates flood impact maps from TUFLOW grid outputs
 
 tracker=http://bugs
 repository=http://repo
