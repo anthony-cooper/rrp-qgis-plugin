@@ -318,10 +318,13 @@ class ImpactRasterCreator:
         #             baseLayer = (self.levelLayers[self.dlg.comboBox.currentIndex()].name()).replace(event,'~event~') #sub ~event~ in place of the actual event in the layer name
         #             break   #Stop trying to find other events in the layer
         # #print(baseLayer)
-        baseLayer = self.levelLayers[self.dlg.comboBox.currentIndex()].name()
-        bS = baseLayer.find('[')
-        bE = baseLayer.find(']')
-        baseLayer = baseLayer[:bS+1] + '~events~' + baseLayer[bE:]
+        try:
+            baseLayer = self.levelLayers[self.dlg.comboBox.currentIndex()].name()
+            bS = baseLayer.find('[')
+            bE = baseLayer.find(']')
+            baseLayer = baseLayer[:bS+1] + '~events~' + baseLayer[bE:]
+        except:
+            print('No layers loaded, or [] demarkers missing')
         baseLayers = [] #blank the list of base layers
         devLayers = []  #blank the list of developed layers
 
