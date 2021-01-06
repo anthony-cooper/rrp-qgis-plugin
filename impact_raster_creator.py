@@ -264,7 +264,7 @@ class ImpactRasterCreator:
                         '((A@1 != -999) AND (B@1 != -999)) * (-999)'
                     elif joinedLayer[8] == '_dd0' or joinedLayer[8] == '_dZUK':
                         calcDo = '((A@1 = -999) AND (B@1 = -999)) * (-999) + ' + \
-                        '((A@1 = -999) AND (B@1 != -999)) * (B@1) + ' + \
+                        '((A@1 = -999) AND (B@1 != -999)) * -1*(B@1) + ' + \
                         '((A@1 != -999) AND (B@1 = -999)) * (A@1) + ' + \
                         '((A@1 != -999) AND (B@1 != -999)) * (A@1 - B@1)'
                     elif joinedLayer[8] == '_dh' or joinedLayer[8] == '_dd'or joinedLayer[8] == '_dDEMZ':
