@@ -26,7 +26,9 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import *
 from qgis.core import *
 from qgis.analysis import QgsRasterCalculator, QgsRasterCalculatorEntry
-import gdal
+from qgis.PyQt.QtGui import QColor
+from qgis.core import QgsProcessing
+import processing
 
 
 # Initialize Qt resources from file resources.py
@@ -253,25 +255,27 @@ class ImpactRasterCreator:
 
                     #Set the calculation type
                     if joinedLayer[8] == '_dh_dx' or joinedLayer[8] == '_dd_dx':
-                        calcDo = '((A@1 = -999) AND (B@1 = -999)) * (-999) + ' + \
-                        '((A@1 = -999) AND (B@1 != -999)) * -99 + ' + \
-                        '((A@1 != -999) AND (B@1 = -999)) * 99 + ' + \
-                        '((A@1 != -999) AND (B@1 != -999)) * (A@1 - B@1)'
+                        calcDo =    'logical_and(equal(A,-999),equal(B,-999)) * -999 + ' + \
+                                    'logical_and(equal(A,-999),not_equal(B,-999)) * -99 + ' + \
+                                    'logical_and(not_equal(A,-999),equal(B,-999)) * 99 + ' + \
+                                    'logical_and(not_equal(A,-999),not_equal(B,-999)) * (A-B)'
                     elif joinedLayer[8] == '_dx':
-                        calcDo = '((A@1 = -999) AND (B@1 = -999)) * (-999) + ' + \
-                        '((A@1 = -999) AND (B@1 != -999)) * -99 + ' + \
-                        '((A@1 != -999) AND (B@1 = -999)) * 99 + ' + \
-                        '((A@1 != -999) AND (B@1 != -999)) * (-999)'
+                        calcDo =    'logical_and(equal(A,-999),equal(B,-999)) * -999 + ' + \
+                                    'logical_and(equal(A,-999),not_equal(B,-999)) * -99 + ' + \
+                                    'logical_and(not_equal(A,-999),equal(B,-999)) * 99 + ' + \
+                                    'logical_and(not_equal(A,-999),not_equal(B,-999)) * -999'
+
                     elif joinedLayer[8] == '_dd0' or joinedLayer[8] == '_dZUK':
-                        calcDo = '((A@1 = -999) AND (B@1 = -999)) * (-999) + ' + \
-                        '((A@1 = -999) AND (B@1 != -999)) * -1*(B@1) + ' + \
-                        '((A@1 != -999) AND (B@1 = -999)) * (A@1) + ' + \
-                        '((A@1 != -999) AND (B@1 != -999)) * (A@1 - B@1)'
+                        calcDo =    'logical_and(equal(A,-999),equal(B,-999)) * -999 + ' + \
+                                    'logical_and(equal(A,-999),not_equal(B,-999)) * B + ' + \
+                                    'logical_and(not_equal(A,-999),equal(B,-999)) * A + ' + \
+                                    'logical_and(not_equal(A,-999),not_equal(B,-999)) * (A-B)'
+
                     elif joinedLayer[8] == '_dh' or joinedLayer[8] == '_dd'or joinedLayer[8] == '_dDEMZ':
-                        calcDo = '((A@1 = -999) AND (B@1 = -999)) * (-999) + ' + \
-                        '((A@1 = -999) AND (B@1 != -999)) * (-999) + ' + \
-                        '((A@1 != -999) AND (B@1 = -999)) * (-999) + ' + \
-                        '((A@1 != -999) AND (B@1 != -999)) * (A@1 - B@1)'
+                        calcDo =    'logical_and(equal(A,-999),equal(B,-999)) * -999 + ' + \
+                                    'logical_and(equal(A,-999),not_equal(B,-999)) * -999 + ' + \
+                                    'logical_and(not_equal(A,-999),equal(B,-999)) * -999 + ' + \
+                                    'logical_and(not_equal(A,-999),not_equal(B,-999)) * (A-B)'
                     else:
                         calcDo = '-999'
 
@@ -486,42 +490,37 @@ class ImpactRasterCalcTask(QgsTask):
                                      self.description),
                                  MESSAGE_CATEGORY, Qgis.Info)
 
-        #Load new copies of input layers
-        layerA = QgsRasterLayer(self.joinedLayer[0].layer().source(), self.joinedLayer[4] + '_' + self.joinedLayer[0].layer().name())
-        layerB = QgsRasterLayer(self.joinedLayer[1].layer().source(), self.joinedLayer[4] + '_' + self.joinedLayer[1].layer().name())
-
-        #Set new input layers to not use no data values (all pixels are calculated on)
-        layerA.dataProvider().setUseSourceNoDataValue(1,False)
-        layerB.dataProvider().setUseSourceNoDataValue(1,False)
-
-        #Define the items being added to the raster calculator; A is new layer, B is baseline
-        entries = []
-        A = QgsRasterCalculatorEntry()
-        A.ref = 'A@1'
-        A.raster = layerA
-        A.bandNumber = 1
-        entries.append(A)
-        B = QgsRasterCalculatorEntry()
-        B.ref = 'B@1'
-        B.raster = layerB
-        B.bandNumber = 1
-        entries.append(B)
-
         self.setProgress(5) #Set progress to 5% to reflect loading in of layers
 
-        #Do the calculation and create a temp output
-        calc = QgsRasterCalculator(self.calcDo, '/vsimem/'+self.joinedLayer[4]+'.tif', 'GTiff', self.joinedLayer[0].layer().extent(), self.joinedLayer[0].layer().width(), self.joinedLayer[0].layer().height(), entries)
-        calcRes = calc.processCalculation(self.feedback)
+
+        #Do the calculation and create a output
+        alg_params = {
+            'BAND_A': 1,
+            'BAND_B': 1,
+            'BAND_C': None,
+            'BAND_D': None,
+            'BAND_E': None,
+            'BAND_F': None,
+            'EXTRA': '--hideNoData --creation-option COMPRESS=DEFLATE',
+            'FORMULA': self.calcDo,
+            'INPUT_A': self.joinedLayer[0].layer().source(),
+            'INPUT_B': self.joinedLayer[1].layer().source(),
+            'INPUT_C': None,
+            'INPUT_D': None,
+            'INPUT_E': None,
+            'INPUT_F': None,
+            'NO_DATA': -999,
+            'OPTIONS': '',
+            'PROJWIN': None,
+            'RTYPE': 5,  # Float32
+            'OUTPUT': self.joinedLayer[5],
+        }
+        #print(alg_params)
+        out = processing.run('gdal:rastercalculator', alg_params, is_child_algorithm=True)
+        #print(out)
+
 
         self.setProgress(95)
-
-        if calcRes == 0: #If the calculation worked
-            #Process the temp output to remove nodata values
-            gdal.Translate(self.joinedLayer[5], gdal.Open('/vsimem/'+self.joinedLayer[4]+'.tif'), options=gdal.TranslateOptions(noData=-999, outputSRS=QgsProject.instance().crs().authid()))
-        else:
-            self.exception = calcRes
-            return False
-
         # check isCanceled() to handle cancellation
         if self.isCanceled():
             return False
